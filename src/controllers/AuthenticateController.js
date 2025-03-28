@@ -43,10 +43,7 @@ const register = async (req, res) => {
 
       const response = await AuthenticateServices.RegisterFreelancer(req.body);
       return res.status(200).json(response);
-    }
-    //
-    //Register as Employer
-    else if (role === "employer") {
+    } else if (role === "employer") {
       console.log("em");
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const isCheckMail = emailRegex.test(contactEmail);

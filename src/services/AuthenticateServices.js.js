@@ -13,16 +13,12 @@ const RegisterFreelancer = (FreelancerData) => {
       );
       FreelancerData.password = hashPassword;
       //
-      await newFreelancer.save();
 
       const savedData = await newFreelancer.save();
       console.log("Saved data:", savedData);
 
-      console.log("sucess");
-
-      resolve("Created:", newFreelancer);
+      resolve(newFreelancer);
     } catch (e) {
-      ``;
       console.log("fail1");
       reject(e);
     }
@@ -46,7 +42,7 @@ const RegisterEmployer = (EmployerData) => {
 
       resolve(newEmployer); // Chỉ resolve với newEmployer
     } catch (e) {
-      console.error("Lỗi khi đăng ký nhà tuyển dụng:", e); // Log thông tin lỗi thực tế
+      console.error("Error:", e); // Log thông tin lỗi thực tế
       reject(e);
     }
   });
