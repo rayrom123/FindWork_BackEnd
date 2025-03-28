@@ -72,8 +72,6 @@ const checkLogin = async (username, password) => {
         throw new Error("Invalid username or password");
       }
     }
-
-    // Trả về thông tin người dùng (bao gồm cả mật khẩu)
     return user.toObject(); // Hoặc bạn có thể trả về token nếu bạn sử dụng JWT
   } catch (e) {
     throw e; // Ném lỗi để xử lý ở nơi gọi hàm này

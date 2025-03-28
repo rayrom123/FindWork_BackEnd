@@ -6,6 +6,7 @@ const Database = require("./config/DatabaseConnection");
 const Passport = require("./config/Passport");
 dotenv.config();
 Database.connectDB();
+
 const port = process.env.PORT;
 app.use(express.json());
 routes(app);
