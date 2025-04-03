@@ -3,10 +3,10 @@ const mongoose = require("mongoose");
 
 const employerSchema = new mongoose.Schema({
   companyName: { type: String, required: true, unique: true }, // Tên công ty
-  companyPassword: { type: String, required: true },
+  password: { type: String, required: true },
   companyLogo: { type: String }, // Đường dẫn tới logo công ty (nếu có)
   contactEmail: { type: String, required: true, unique: true }, // Email của nhà tuyển dụng
-  phoneNumber: { type: String, required: true }, // Số điện thoại liên hệ
+  phoneNumber: { type: String }, // Số điện thoại liên hệ
   companyDescription: { type: String }, // Mô tả về công ty
   location: { type: String }, // Vị trí làm việc
   // rating: {

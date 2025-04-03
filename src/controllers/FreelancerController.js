@@ -1,10 +1,9 @@
 const AuthenticateServices = require("../services/AuthenticateServices.js");
 
-const register = async (req, res) => {
+const createFreelancer = async (req, res) => {
   console.log("body req", req.body);
   try {
     const {
-      role,
       username,
       password,
       fname,
@@ -14,26 +13,20 @@ const register = async (req, res) => {
       phone,
       experience,
       email,
-      companyName,
-      companyLogo,
-      contactEmail,
-      phoneNumber,
-      companyDescription,
-      location,
+      role,
     } = req.body;
 
-    if (!role || !["employer", "freelancer"].includes(role)) {
-      console.log("Invalid user type. Must be 'employer' or 'freelancer");
+    if (!role || role !== "freelancer") {
+      console.log("Invalid user type. Must be 'freelancer'");
       return res.status(400).json({
         status: "Error",
-        message: "Invalid user type. Must be 'employer' or 'freelancer'.",
+        message: "Invalid user type. Must be 'freelancer'.",
       });
     }
     //Register as Freelancer
     if (role === "freelancer") {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const isCheckMail = emailRegex.test(email);
-      console.log("isCheckEmail", isCheckMail);
       if (!username || !password || !email) {
         return res.status(400).json({
           status: "Error",
@@ -43,28 +36,7 @@ const register = async (req, res) => {
 
       const response = await AuthenticateServices.RegisterFreelancer(req.body);
       return res.status(200).json(response);
-    } else if (role === "employer") {
-      console.log("em");
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const isCheckMail = emailRegex.test(contactEmail);
-      if (
-        !companyName ||
-        !companyLogo ||
-        !contactEmail ||
-        !phoneNumber ||
-        !companyDescription ||
-        !location
-      ) {
-        return res.status(400).json({
-          status: "Error",
-          message: "The input is required",
-        });
-      }
-      console.log("isCheckEmail", isCheckMail);
-      const response = await AuthenticateServices.RegisterEmployer(req.body);
-      return res.status(200).json(response);
     }
-    //
   } catch (e) {
     return res.status(404).json({
       message: "Username or email address already exists.",
@@ -100,6 +72,6 @@ const login = async (req, res) => {
   }
 };
 module.exports = {
-  register,
+  createFreelancer,
   login,
 };
