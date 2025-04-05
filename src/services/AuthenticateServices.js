@@ -7,18 +7,14 @@ const RegisterFreelancer = (FreelancerData) => {
   return new Promise(async (resolve, reject) => {
     try {
       const newFreelancer = new Freelancer(FreelancerData);
-      //Hash password
-      const hashPassword = await bcrypt.hash(
-        FreelancerData.password,
-        saltRounds,
-      );
-      FreelancerData.password = hashPassword;
-      //
+      await newFreelancer.save();
 
       const savedData = await newFreelancer.save();
       console.log("Saved data:", savedData);
 
-      resolve(newFreelancer);
+      console.log("sucess");
+
+      resolve("Created:", newFreelancer);
     } catch (e) {
       console.log("fail1");
       reject(e);
@@ -30,42 +26,49 @@ const RegisterEmployer = (EmployerData) => {
   return new Promise(async (resolve, reject) => {
     try {
       const newEmployer = new Employer(EmployerData);
-      console.log("employer pass", EmployerData);
-      //Hash password
-      const hashPassword = await bcrypt.hash(EmployerData.password, saltRounds);
-      EmployerData.password = hashPassword;
-      //
+      await newEmployer.save();
+
       const savedData = await newEmployer.save();
       console.log("Saved data:", savedData);
 
-      resolve(newEmployer); // Resovle only with Employer
+      resolve("Created:", newEmployer);
     } catch (e) {
-      console.error("Error:", e);
+      console.log("f3");
       reject(e);
     }
   });
 };
 
-const checkLogin = async (username, password) => {
+
+const LoginEmployer = async (email, password) => {
   try {
-    // Find by username or email
-    let user = await Freelancer.findOne({ username });
-    if (!user) {
-      const companyName = username;
-      user = await Employer.findOne({ companyName });
+    
+    const user = await Employer.findOne({ contactEmail: email })
+    console.log(user);
       if (!user) {
-        throw new Error("Invalid username ");
+        throw new Error("Invalid email ");
+      } else {
+        console.log(user.companyPassword)
+        if (password !== user.companyPassword) {
+          throw new Error("Invalid password");
+        }
+      }
+    return user.toObject();
+  } catch (e) {
+    throw e;
+  }
+};
+
+const LoginFreelancer = async (email, password) => {
+  try {
+    const user = await Freelancer.findOne({ email: email });
+      if (!user) {
+        throw new Error("Invalid email ");
       } else {
         if (password !== user.password) {
           throw new Error("Invalid password");
         }
       }
-    } else if (user) {
-      console.log("123");
-      if (password !== user.password) {
-        throw new Error("Invalid username or password");
-      }
-    }
     return user.toObject();
   } catch (e) {
     throw e;
@@ -75,5 +78,7 @@ const checkLogin = async (username, password) => {
 module.exports = {
   RegisterEmployer,
   RegisterFreelancer,
-  checkLogin,
+  LoginEmployer,
+  LoginFreelancer
+  
 };
