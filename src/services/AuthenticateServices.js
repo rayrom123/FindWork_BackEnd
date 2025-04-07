@@ -2,7 +2,9 @@ const Freelancer = require("../models/Freelancer");
 const Employer = require("../models/Employer");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
-
+const dotenv = require("dotenv");
+const jwt = require("jsonwebtoken");
+dotenv.config();
 const RegisterFreelancer = (FreelancerData) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -66,7 +68,20 @@ const checkLogin = async (username, password) => {
         throw new Error("Invalid username or password");
       }
     }
-    return user.toObject();
+    const payload = {
+      username_jwt: username,
+    };
+    const access_token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRE,
+    });
+    console.log(access_token);
+    return {
+      access_token,
+      user: {
+        username: username,
+        userid: user._id,
+      },
+    };
   } catch (e) {
     throw e;
   }

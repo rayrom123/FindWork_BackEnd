@@ -56,12 +56,15 @@ const login = async (req, res) => {
       });
     }
 
-    const userInfo = await AuthenticateServices.checkLogin(username, password);
+    const response_msg = await AuthenticateServices.checkLogin(
+      username,
+      password,
+    );
 
     console.log("sucess");
     return res.status(200).json({
       status: "Success",
-      user: userInfo,
+      response: respones_msg,
     });
   } catch (e) {
     console.error("Login error:", e);
