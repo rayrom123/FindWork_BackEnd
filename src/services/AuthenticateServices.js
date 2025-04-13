@@ -4,91 +4,140 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
-dotenv.config();
-const RegisterFreelancer = (FreelancerData) => {
-  return new Promise(async (resolve, reject) => {
+dotenv.config({ path: "./src/config/.env" });
+
+// Check if JWT secret exists
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is not defined in environment variables");
+}
+
+// Service for authentication operations
+class AuthenticateServices {
+  // Register a new employer
+  static async registerEmployer(employerData) {
     try {
-      const newFreelancer = new Freelancer(FreelancerData);
-      //Hash password
-      const hashPassword = await bcrypt.hash(
-        FreelancerData.password,
-        saltRounds,
+      // Check if email already exists
+      const existingEmployer = await Employer.findOne({
+        contactEmail: employerData.contactEmail,
+      });
+      if (existingEmployer) {
+        throw new Error("Email already exists");
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(employerData.password, 10);
+
+      // Create new employer
+      const employer = new Employer({
+        ...employerData,
+        password: hashedPassword,
+      });
+
+      // Save employer to database
+      await employer.save();
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { user_id: employer._id, role: "employer" },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" },
       );
-      FreelancerData.password = hashPassword;
-      //
 
-      const savedData = await newFreelancer.save();
-      console.log("Saved data:", savedData);
-
-      resolve(newFreelancer);
+      return {
+        access_token: token,
+        user: {
+          ...employer.toObject(),
+          role: "employer",
+        },
+      };
     } catch (e) {
-      console.log("fail1");
-      reject(e);
+      throw e;
     }
-  });
-};
-
-const RegisterEmployer = (EmployerData) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const newEmployer = new Employer(EmployerData);
-      console.log("employer pass", EmployerData);
-      //Hash password
-      const hashPassword = await bcrypt.hash(EmployerData.password, saltRounds);
-      EmployerData.password = hashPassword;
-      //
-      const savedData = await newEmployer.save();
-      console.log("Saved data:", savedData);
-
-      resolve(newEmployer); // Resovle only with Employer
-    } catch (e) {
-      console.error("Error:", e);
-      reject(e);
-    }
-  });
-};
-
-const checkLogin = async (username, password) => {
-  try {
-    // Find by username or email
-    let user = await Freelancer.findOne({ username });
-    if (!user) {
-      const companyName = username;
-      user = await Employer.findOne({ companyName });
-      if (!user) {
-        throw new Error("Invalid username ");
-      } else {
-        if (password !== user.password) {
-          throw new Error("Invalid password");
-        }
-      }
-    } else if (user) {
-      console.log("123");
-      if (password !== user.password) {
-        throw new Error("Invalid username or password");
-      }
-    }
-    const payload = {
-      username_jwt: username,
-    };
-    const access_token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRE,
-    });
-    console.log(access_token);
-    return {
-      access_token,
-      user: {
-        username: username,
-        userid: user._id,
-      },
-    };
-  } catch (e) {
-    throw e;
   }
-};
 
-module.exports = {
-  RegisterEmployer,
-  RegisterFreelancer,
-  checkLogin,
-};
+  // Register a new freelancer
+  static async registerFreelancer(freelancerData) {
+    try {
+      // Check if email already exists
+      const existingFreelancer = await Freelancer.findOne({
+        email: freelancerData.email,
+      });
+      if (existingFreelancer) {
+        throw new Error("Email already exists");
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(freelancerData.password, 10);
+
+      // Create new freelancer
+      const freelancer = new Freelancer({
+        ...freelancerData,
+        password: hashedPassword,
+      });
+
+      // Save freelancer to database
+      await freelancer.save();
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { user_id: freelancer._id, role: "freelancer" },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" },
+      );
+
+      return {
+        access_token: token,
+        user: {
+          ...freelancer.toObject(),
+          role: "freelancer",
+        },
+      };
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // Login user (employer or freelancer)
+  static async login(email, password, role) {
+    try {
+      // Find user based on role
+      let user;
+      if (role === "employer") {
+        user = await Employer.findOne({ contactEmail: email });
+      } else if (role === "freelancer") {
+        user = await Freelancer.findOne({ email: email });
+      }
+
+      // Check if user exists
+      if (!user) {
+        throw new Error("Invalid credentials");
+      }
+
+      // Verify password
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        throw new Error("Invalid credentials");
+      }
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { user_id: user._id, role },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" },
+      );
+
+      // Return data in format expected by frontend
+      return {
+        access_token: token,
+        user: {
+          ...user.toObject(),
+          role: role,
+        },
+      };
+    } catch (e) {
+      throw e;
+    }
+  }
+}
+
+module.exports = AuthenticateServices;

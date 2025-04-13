@@ -10,7 +10,7 @@ const freelancerSchema = new mongoose.Schema(
     project_done: { type: Number }, // Thay đổi kiểu dữ liệu
     phone: { type: String }, // Thay đổi kiểu dữ liệu
     experience: { type: String }, // Thay đổi kiểu dữ liệu
-    email: { type: String, required: true }, // Thêm trường email
+    email: { type: String, required: true, unique: true }, // Thêm trường email và unique
   },
   { timestamps: true },
 );
