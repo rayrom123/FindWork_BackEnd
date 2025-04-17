@@ -4,12 +4,7 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
-dotenv.config({ path: "./src/config/.env" });
-
-// Check if JWT secret exists
-if (!process.env.JWT_SECRET) {
-  throw new Error("JWT_SECRET is not defined in environment variables");
-}
+dotenv.config({ path: "./src/.env" });
 
 // Service for authentication operations
 class AuthenticateServices {
@@ -97,43 +92,82 @@ class AuthenticateServices {
     }
   }
 
-  // Login user (employer or freelancer)
-  static async login(email, password, role) {
+  // Login employer
+  static async loginEmployer(email, password) {
     try {
-      // Find user based on role
-      let user;
-      if (role === "employer") {
-        user = await Employer.findOne({ contactEmail: email });
-      } else if (role === "freelancer") {
-        user = await Freelancer.findOne({ email: email });
-      }
-
-      // Check if user exists
+      const user = await Employer.findOne({ contactEmail: email });
       if (!user) {
-        throw new Error("Invalid credentials");
+        throw new Error("Invalid email");
       }
 
-      // Verify password
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-        throw new Error("Invalid credentials");
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        throw new Error("Invalid password");
       }
 
-      // Generate JWT token
       const token = jwt.sign(
-        { user_id: user._id, role },
+        { id: user._id, role: "employer" },
         process.env.JWT_SECRET,
         { expiresIn: "1d" },
       );
 
-      // Return data in format expected by frontend
+      return {
+        token,
+        user: {
+          id: user._id,
+          name: user.companyName,
+          email: user.contactEmail,
+          role: "employer",
+        },
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Login freelancer
+  static async loginFreelancer(email, password) {
+    try {
+      const user = await Freelancer.findOne({ email: email });
+      if (!user) {
+        throw new Error("Invalid email");
+      }
+
+      // Compare password
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        throw new Error("Invalid password");
+      }
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { user_id: user._id, role: "freelancer" },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" },
+      );
+
       return {
         access_token: token,
         user: {
           ...user.toObject(),
-          role: role,
+          role: "freelancer",
         },
       };
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // Check login credentials
+  static async checkLogin(email, password, role) {
+    try {
+      if (role === "employer") {
+        return await this.loginEmployer(email, password);
+      } else if (role === "freelancer") {
+        return await this.loginFreelancer(email, password);
+      } else {
+        throw new Error("Invalid role");
+      }
     } catch (e) {
       throw e;
     }

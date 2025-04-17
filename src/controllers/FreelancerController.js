@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
-dotenv.config({ path: "./src/config/.env" });
+dotenv.config({ path: "./src/.env" });
 
 const createFreelancer = async (req, res) => {
   console.log("Freelancer registration request:", req.body);
@@ -40,6 +40,37 @@ const createFreelancer = async (req, res) => {
     return res.status(400).json({
       status: "Error",
       message: e.message || "Registration failed",
+    });
+  }
+};
+
+const GetProfile = async (req, res) => {
+  try {
+    const { freelancerId } = req.query;
+    if (!freelancerId) {
+      return res.status(400).json({
+        status: "Error",
+        message: "Freelancer ID is required",
+      });
+    }
+
+    const freelancer =
+      await Freelancer.findById(freelancerId).select("-password");
+    if (!freelancer) {
+      return res.status(404).json({
+        status: "Error",
+        message: "Freelancer not found",
+      });
+    }
+
+    return res.status(200).json({
+      status: "Success",
+      data: freelancer,
+    });
+  } catch (e) {
+    return res.status(400).json({
+      status: "Error",
+      message: e.message || "Failed to get profile",
     });
   }
 };
@@ -187,4 +218,5 @@ module.exports = {
   getFreelancerProfile,
   updateFreelancerProfile,
   deleteFreelancer,
+  GetProfile,
 };
