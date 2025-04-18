@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
-dotenv.config({ path: "./src/config/.env" });
+dotenv.config({ path: "./src/.env" });
 
 const createEmployer = async (req, res) => {
   console.log("body req", req.body);
