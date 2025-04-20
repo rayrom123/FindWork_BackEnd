@@ -1,5 +1,4 @@
 const Job = require("../models/job");
-const Application = require("../models/applications");
 
 // Service for job-related operations
 class JobService {
