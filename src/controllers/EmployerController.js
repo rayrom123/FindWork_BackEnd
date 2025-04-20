@@ -2,8 +2,10 @@ const AuthenticateServices = require("../services/AuthenticateServices");
 const Employer = require("../models/Employer");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
+const FacebookAuthServices = require("../services/FacebookAuthServices");
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
+const passport = require("passport");
 dotenv.config({ path: "./src/.env" });
 
 const createEmployer = async (req, res) => {
@@ -182,6 +184,23 @@ const deleteEmployer = (employerId) => {
   });
 };
 
+const facebookLogin = (req, res) => {
+  req.session.redirectTo = "http://localhost:3001/employer/dashboard";
+  passport.authenticate("facebook", { scope: ["email"] })(req, res);
+};
+
+const facebookCallback = (req, res, next) => {
+  FacebookAuthServices.handleFacebookCallback(req, res, next);
+};
+
+const checkAuthStatus = (req, res) => {
+  FacebookAuthServices.checkAuthStatus(req, res);
+};
+
+const logout = (req, res) => {
+  FacebookAuthServices.handleLogout(req, res);
+};
+
 module.exports = {
   createEmployer,
   login,
@@ -189,4 +208,8 @@ module.exports = {
   getEmployerProfile,
   updateEmployerProfile,
   deleteEmployer,
+  facebookLogin,
+  facebookCallback,
+  checkAuthStatus,
+  logout,
 };
