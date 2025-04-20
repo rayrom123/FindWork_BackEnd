@@ -28,7 +28,7 @@ const createFreelancer = async (req, res) => {
 
     // Gọi service để đăng ký freelancer
     const response =
-      await AuthenticateServices.RegisterFreelancer(freelancerData);
+      await AuthenticateServices.registerFreelancer(freelancerData);
 
     return res.status(200).json({
       status: "Success",
@@ -107,116 +107,8 @@ const login = async (req, res) => {
   }
 };
 
-// Controller for freelancer-related operations
-const RegisterFreelancer = (FreelancerData) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Check if username already exists
-      const existingUsername = await Freelancer.findOne({
-        username: FreelancerData.username,
-      });
-      if (existingUsername) {
-        throw new Error("Username already exists");
-      }
-
-      // Check if email already exists
-      const existingEmail = await Freelancer.findOne({
-        email: FreelancerData.email,
-      });
-      if (existingEmail) {
-        throw new Error("Email already exists");
-      }
-
-      // Hash password
-      const hashPassword = await bcrypt.hash(
-        FreelancerData.password,
-        saltRounds,
-      );
-      FreelancerData.password = hashPassword;
-
-      // Create new freelancer
-      const newFreelancer = new Freelancer({
-        ...FreelancerData,
-        project_done: 0,
-      });
-
-      // Save freelancer to database
-      const savedData = await newFreelancer.save();
-      console.log("Saved freelancer data:", savedData);
-
-      resolve(savedData);
-    } catch (e) {
-      console.error("Freelancer registration error:", e);
-      reject(e);
-    }
-  });
-};
-
-// Get freelancer profile
-const getFreelancerProfile = (freelancerId) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Find freelancer by ID
-      const freelancer = await Freelancer.findById(freelancerId);
-      if (!freelancer) {
-        throw new Error("Freelancer not found");
-      }
-
-      resolve(freelancer);
-    } catch (e) {
-      console.error("Get freelancer profile error:", e);
-      reject(e);
-    }
-  });
-};
-
-// Update freelancer profile
-const updateFreelancerProfile = (freelancerId, updateData) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Find and update freelancer
-      const updatedFreelancer = await Freelancer.findByIdAndUpdate(
-        freelancerId,
-        updateData,
-        { new: true },
-      );
-      if (!updatedFreelancer) {
-        throw new Error("Freelancer not found");
-      }
-
-      resolve(updatedFreelancer);
-    } catch (e) {
-      console.error("Update freelancer profile error:", e);
-      reject(e);
-    }
-  });
-};
-
-// Delete freelancer account
-const deleteFreelancer = (freelancerId) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Find and delete freelancer
-      const deletedFreelancer =
-        await Freelancer.findByIdAndDelete(freelancerId);
-      if (!deletedFreelancer) {
-        throw new Error("Freelancer not found");
-      }
-
-      resolve(deletedFreelancer);
-    } catch (e) {
-      console.error("Delete freelancer error:", e);
-      reject(e);
-    }
-  });
-};
-
 module.exports = {
   createFreelancer,
   login,
-  RegisterFreelancer,
-  getFreelancerProfile,
-  updateFreelancerProfile,
-  deleteFreelancer,
   GetProfile,
 };
