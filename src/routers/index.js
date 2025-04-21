@@ -7,7 +7,7 @@ const JobRouter = require("./JobRouter");
 const routes = (app) => {
   app.use("/api/employer", EmployerRouter);
   app.use("/api/freelancer", FreelancerRouter);
-  app.use("/api/job", JobRouter);
+  app.use("/api", JobRouter);
 };
 
 // Export routes

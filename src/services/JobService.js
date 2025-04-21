@@ -1,4 +1,7 @@
-const Job = require("../models/job");
+
+const Job = require("../models/Job");
+const Application = require("../models/Applications");
+
 
 // Service for job-related operations
 class JobService {
@@ -153,24 +156,6 @@ class JobService {
       };
     } catch (e) {
       console.error("Error getting jobs:", e);
-      throw e;
-    }
-  }
-
-  // Get job by ID
-  static async getJobById(jobId) {
-    try {
-      const job = await Job.findById(jobId)
-        .populate("employerId", "companyName image")
-        .lean();
-
-      if (!job) {
-        throw new Error("Job not found");
-      }
-
-      return job;
-    } catch (e) {
-      console.error("Error getting job by ID:", e);
       throw e;
     }
   }

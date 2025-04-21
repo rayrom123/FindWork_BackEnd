@@ -5,8 +5,7 @@ const { auth, authRole } = require("../middleware/auth");
 
 // Job posting routes
 router.post("/jobpost", auth, authRole("employer"), JobController.createJob);
-router.get("/jobs", JobController.getJobs);
-router.get("/jobs/:id", JobController.getJobById);
+router.get("/jobs", auth, authRole("freelancer"), JobController.getJobs);
 router.put("/jobs/:id", auth, authRole("employer"), JobController.updateJob);
 router.delete("/jobs/:id", auth, authRole("employer"), JobController.deleteJob);
 
