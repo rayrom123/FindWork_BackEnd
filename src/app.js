@@ -20,7 +20,7 @@ app.use(
   cors({
     origin: "http://localhost:5173",
     credentials: true,
-  }),
+  })
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -35,7 +35,7 @@ app.use(
       secure: process.env.NODE_ENV === "production",
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
-  }),
+  })
 );
 
 // Initialize passport
@@ -49,7 +49,7 @@ app.use(
     setHeaders: (res, path) => {
       res.set("Access-Control-Allow-Origin", "*");
     },
-  }),
+  })
 );
 
 routes(app);

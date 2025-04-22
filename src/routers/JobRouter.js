@@ -8,14 +8,14 @@ const { auth, authRole } = require("../middleware/auth");
 router.post("/jobpost", auth, authRole("employer"), JobController.createJob);
 
 // Lấy danh sách tất cả các job
-router.get("/jobs", JobController.getJobs);
+router.get("/jobs", auth, authRole("freelancer"), JobController.getJobs);
 
 // Lấy danh sách các job của một employer cụ thể
 router.get(
   "/jobs/employerjob",
   auth,
   authRole("employer"),
-  JobController.getJobsByEmployer,
+  JobController.getJobsByEmployer
 );
 
 // Lấy danh sách các job mà freelancer đã apply
@@ -23,7 +23,7 @@ router.get(
   "/jobs/applied",
   auth,
   authRole("freelancer"),
-  JobController.getAppliedJobs,
+  JobController.getAppliedJobs
 );
 
 // Lấy thông tin chi tiết của một job theo ID
@@ -34,8 +34,9 @@ router.get(
   "/jobs/:id/proposal",
   auth,
   authRole("employer"),
-  JobController.getProposal,
+  JobController.getProposal
 );
+
 
 // Cập nhật thông tin của một job (chỉ dành cho employer)
 router.put("/jobs/:id", auth, authRole("employer"), JobController.updateJob);
@@ -49,7 +50,7 @@ router.post(
   "/jobs/:id/apply",
   auth,
   authRole("freelancer"),
-  JobController.applyJob,
+  JobController.applyJob
 );
 
 // Reject một proposal (chỉ dành cho employer)
@@ -57,13 +58,13 @@ router.put(
   "/jobs/proposals/:applicationId/reject",
   auth,
   authRole("employer"),
-  JobController.rejectProposal,
+  JobController.rejectProposal
 );
 // Accept một proposal (chỉ dành cho employer)
 router.put(
   "/jobs/proposals/:applicationId/accept",
   auth,
   authRole("employer"),
-  JobController.acceptProposal,
+  JobController.acceptProposal
 );
 module.exports = router;
