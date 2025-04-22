@@ -106,17 +106,15 @@ class AuthenticateServices {
       }
 
       const token = jwt.sign(
-        { id: user._id, role: "employer" },
+        { user_id: user._id, role: "employer" },
         process.env.JWT_SECRET,
         { expiresIn: "1d" },
       );
 
       return {
-        token,
+        access_token: token,
         user: {
-          id: user._id,
-          name: user.companyName,
-          email: user.contactEmail,
+          ...user.toObject(),
           role: "employer",
         },
       };

@@ -1,4 +1,7 @@
 const JobService = require("../services/JobService");
+const Application = require("../models/Applications");
+const Job = require("../models/Job");
+const Freelancer = require("../models/Freelancer");
 
 // Controller for job-related operations
 const createJob = async (req, res) => {
@@ -143,6 +146,21 @@ const getJobs = async (req, res) => {
   }
 };
 
+const getJobsByEmployer = async (req, res) => {
+  try {
+    console.log("User from token:", req.user);
+    const employerId = req.user._id;
+    console.log("Looking for jobs with employerId:", employerId);
+
+    const jobs = await JobService.getJobsByEmployer(employerId);
+    console.log("Found jobs:", jobs);
+
+    res.json(jobs);
+  } catch (e) {
+    console.error("Error in getJobsByEmployer:", e);
+    res.status(400).json({ error: e.message });
+  }
+};
 // Get job by ID
 const getJobById = async (req, res) => {
   try {
@@ -270,6 +288,171 @@ const getAppliedJobs = async (req, res) => {
   }
 };
 
+// Get applied freelancers for a specific job
+const getProposal = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const employerId = req.user._id;
+
+    console.log("Job ID:", id);
+    console.log("Employer ID:", employerId);
+
+    // Kiểm tra xem job có thuộc về employer này không
+    const job = await Job.findById(id);
+    console.log("Found job:", job);
+
+    if (!job) {
+      return res.status(404).json({
+        status: "Error",
+        message: "Job not found",
+      });
+    }
+
+    if (job.employerId.toString() !== employerId.toString()) {
+      return res.status(403).json({
+        status: "Error",
+        message: "You don't have permission to view applications for this job",
+      });
+    }
+
+    // Lấy tất cả applications cho job này và populate toàn bộ thông tin freelancer
+    const applications = await Application.find({ jobId: id })
+      .populate("freelancerId")
+      .sort({ createdAt: -1 });
+
+    console.log("Found applications:", applications);
+
+    return res.status(200).json({
+      status: "Success",
+      data: {
+        job: {
+          title: job.title,
+          description: job.description,
+          status: job.status,
+        },
+        applications: applications.map((app) => ({
+          id: app._id,
+          freelancer: app.freelancerId,
+          proposalText: app.proposalText,
+          bidAmount: app.bidAmount,
+          status: app.status,
+          appliedAt: app.createdAt,
+        })),
+      },
+    });
+  } catch (error) {
+    console.error("Error getting applied job:", error);
+    return res.status(400).json({
+      status: "Error",
+      message: error.message || "Failed to get job applications",
+    });
+  }
+};
+
+// Reject a proposal
+const rejectProposal = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const employerId = req.user._id;
+
+    // Tìm application
+    const application = await Application.findById(applicationId);
+
+    if (!application) {
+      return res.status(404).json({
+        status: "Error",
+        message: "Application not found",
+      });
+    }
+
+    // Tìm job tương ứng
+    const job = await Job.findById(application.jobId);
+
+    if (!job) {
+      return res.status(404).json({
+        status: "Error",
+        message: "Job not found",
+      });
+    }
+
+    // Kiểm tra quyền (chỉ employer của job mới có thể từ chối)
+    if (job.employerId.toString() !== employerId.toString()) {
+      return res.status(403).json({
+        status: "Error",
+        message: "You don't have permission to reject this proposal",
+      });
+    }
+
+    // Cập nhật trạng thái thành rejected
+    application.status = "rejected";
+    await application.save();
+
+    return res.status(200).json({
+      status: "Success",
+      message: "Proposal rejected successfully",
+      data: application,
+    });
+  } catch (error) {
+    console.error("Error rejecting proposal:", error);
+    return res.status(400).json({
+      status: "Error",
+      message: error.message || "Failed to reject proposal",
+    });
+  }
+};
+
+// Accept a proposal
+const acceptProposal = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const employerId = req.user._id;
+
+    // Tìm application
+    const application = await Application.findById(applicationId);
+
+    if (!application) {
+      return res.status(404).json({
+        status: "Error",
+        message: "Application not found",
+      });
+    }
+
+    // Tìm job tương ứng
+    const job = await Job.findById(application.jobId);
+
+    if (!job) {
+      return res.status(404).json({
+        status: "Error",
+        message: "Job not found",
+      });
+    }
+
+    // Kiểm tra quyền (chỉ employer của job mới có thể chấp nhận)
+    if (job.employerId.toString() !== employerId.toString()) {
+      return res.status(403).json({
+        status: "Error",
+        message: "You don't have permission to accept this proposal",
+      });
+    }
+
+    // Cập nhật trạng thái thành accepted
+    application.status = "accepted";
+    await application.save();
+
+    return res.status(200).json({
+      status: "Success",
+      message: "Proposal accepted successfully",
+      data: application,
+    });
+  } catch (error) {
+    console.error("Error accepting proposal:", error);
+    return res.status(400).json({
+      status: "Error",
+      message: error.message || "Failed to accept proposal",
+    });
+  }
+};
+
 module.exports = {
   createJob,
   getJobs,
@@ -278,4 +461,8 @@ module.exports = {
   deleteJob,
   applyJob,
   getAppliedJobs,
+  getJobsByEmployer,
+  getProposal,
+  rejectProposal,
+  acceptProposal,
 };

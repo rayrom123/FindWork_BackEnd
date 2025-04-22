@@ -6,11 +6,26 @@ const freelancerSchema = new mongoose.Schema(
     password: { type: String, required: true },
     fname: { type: String },
     birthday: { type: Date },
-    image: { type: String },
+    avatar: { type: String },
+    bio: { type: String, default: "" },
+    skills: { type: [String], default: [] },
+    education: {
+      type: [
+        {
+          school: String,
+          degree: String,
+          startDate: String,
+          endDate: String,
+          description: String,
+        },
+      ],
+      default: [],
+    },
     project_done: { type: Number }, // Thay đổi kiểu dữ liệu
     phone: { type: String }, // Thay đổi kiểu dữ liệu
     experience: { type: String }, // Thay đổi kiểu dữ liệu
     email: { type: String, required: true, unique: true }, // Thêm trường email và unique
+    location: { type: String },
   },
   { timestamps: true },
 );

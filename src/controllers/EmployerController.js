@@ -44,7 +44,7 @@ const createEmployer = async (req, res) => {
       });
     }
 
-    const response = await AuthenticateServices.RegisterEmployer(employerData);
+    const response = await AuthenticateServices.registerEmployer(employerData);
     return res.status(200).json({
       status: "Success",
       message: "Employer registered successfully",
@@ -70,7 +70,7 @@ const login = async (req, res) => {
       });
     }
 
-    const userInfo = await AuthenticateServices.login(
+    const userInfo = await AuthenticateServices.checkLogin(
       email,
       password,
       "employer",

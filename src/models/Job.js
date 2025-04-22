@@ -39,6 +39,13 @@ const jobSchema = new mongoose.Schema({
     ref: "employer",
     required: true,
   },
+  appliedFreelancers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "freelancer",
+      default: [],
+    },
+  ],
   status: {
     type: String,
     enum: ["Open", "Closed"],

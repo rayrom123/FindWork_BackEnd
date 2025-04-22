@@ -1,21 +1,35 @@
 const mongoose = require("mongoose");
-const { Schema } = mongoose;
+const Freelancer = require("./Freelancer");
 
-const ApplicationSchema = new Schema({
-  freelancerId: {
-    type: Schema.Types.ObjectId,
-    ref: "Freelancer",
-    required: true,
+const applicationSchema = new mongoose.Schema(
+  {
+    freelancerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "freelancer",
+      required: true,
+    },
+    jobId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Job",
+      required: true,
+    },
+    proposalText: {
+      type: String,
+      required: true,
+    },
+    bidAmount: {
+      type: Number,
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["pending", "accepted", "rejected"],
+      default: "pending",
+    },
   },
-  jobId: { type: Schema.Types.ObjectId, ref: "Job", required: true },
-  proposalText: { type: String, required: true },
-  bidAmount: { type: Number, required: true },
-  status: {
-    type: String,
-    enum: ["pending", "accepted", "rejected"],
-    default: "pending",
-  },
-  createdAt: { type: Date, default: Date.now },
-});
+  { timestamps: true },
+);
 
-module.exports = mongoose.model("Application", ApplicationSchema);
+const Application = mongoose.model("Application", applicationSchema);
+
+module.exports = Application;
