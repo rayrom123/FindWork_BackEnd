@@ -7,6 +7,7 @@ const { auth, authRole } = require("../middleware/auth");
 // Tạo một job posting mới (chỉ dành cho employer)
 router.post("/jobpost", auth, authRole("employer"), JobController.createJob);
 
+
 // Lấy danh sách tất cả các job
 router.get("/jobs", auth, authRole("freelancer"), JobController.getJobs);
 
@@ -39,6 +40,7 @@ router.get(
 
 
 // Cập nhật thông tin của một job (chỉ dành cho employer)
+
 router.put("/jobs/:id", auth, authRole("employer"), JobController.updateJob);
 
 // Xóa một job (chỉ dành cho employer)

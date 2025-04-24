@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+
 const freelancerSchema = new mongoose.Schema(
   {
     facebookId: {
@@ -34,10 +35,38 @@ const freelancerSchema = new mongoose.Schema(
     },
     email: { type: String, required: true, unique: true }, // Thêm trường email và unique
     location: { type: String },
+
   },
-  { timestamps: true },
-);
+  username: {
+    type: String,
+    required: true,
+  },
+  password: {
+    type: String,
+    required: function () {
+      return this.provider === "local";
+    },
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  fname: String,
+  birthday: Date,
+  image: String,
+  avatar: String,
+  project_done: {
+    type: Number,
+    default: 0,
+  },
+  phone: String,
+  experience: String,
+  provider: {
+    type: String,
+    enum: ["local", "facebook"],
+    default: "local",
+  },
+});
 
-const freelancer = mongoose.model("freelancer", freelancerSchema);
-
-module.exports = freelancer;
+module.exports = mongoose.model("Freelancer", FreelancerSchema);

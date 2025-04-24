@@ -170,6 +170,47 @@ class AuthenticateServices {
       throw e;
     }
   }
-}
 
+  // Login user (employer or freelancer)
+  static async login(email, password, role) {
+    try {
+      // Find user based on role
+      let user;
+      if (role === "employer") {
+        user = await Employer.findOne({ contactEmail: email });
+      } else if (role === "freelancer") {
+        user = await Freelancer.findOne({ email: email });
+      }
+
+      // Check if user exists
+      if (!user) {
+        throw new Error("Invalid credentials");
+      }
+
+      // Verify password
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        throw new Error("Invalid credentials");
+      }
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { user_id: user._id, role },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" },
+      );
+
+      // Return data in format expected by frontend
+      return {
+        access_token: token,
+        user: {
+          ...user.toObject(),
+          role: role,
+        },
+      };
+    } catch (e) {
+      throw e;
+    }
+  }
+}
 module.exports = AuthenticateServices;
