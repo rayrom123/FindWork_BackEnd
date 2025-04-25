@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 
-
 const freelancerSchema = new mongoose.Schema(
   {
     facebookId: {
@@ -9,21 +8,28 @@ const freelancerSchema = new mongoose.Schema(
       sparse: true,
     },
     username: { type: String, required: true, unique: true }, // Sửa lỗi chính tả và thêm unique
-    password: { type: String, required: true },
+    password: {
+      type: String,
+      required: function () {
+        return this.provider === "local";
+      },
+    },
     fname: { type: String },
     birthday: { type: Date },
     avatar: { type: String },
     bio: { type: String, default: "" },
     skills: { type: [String], default: [] },
-    education: { 
-      type: [{
-        school: String,
-        degree: String,
-        startDate: String,
-        endDate: String,
-        description: String
-      }], 
-      default: [] 
+    education: {
+      type: [
+        {
+          school: String,
+          degree: String,
+          startDate: String,
+          endDate: String,
+          description: String,
+        },
+      ],
+      default: [],
     },
     project_done: { type: Number }, // Thay đổi kiểu dữ liệu
     phone: { type: String }, // Thay đổi kiểu dữ liệu
@@ -35,38 +41,8 @@ const freelancerSchema = new mongoose.Schema(
     },
     email: { type: String, required: true, unique: true }, // Thêm trường email và unique
     location: { type: String },
+  },
+  { timestamps: true },
+);
 
-  },
-  username: {
-    type: String,
-    required: true,
-  },
-  password: {
-    type: String,
-    required: function () {
-      return this.provider === "local";
-    },
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  fname: String,
-  birthday: Date,
-  image: String,
-  avatar: String,
-  project_done: {
-    type: Number,
-    default: 0,
-  },
-  phone: String,
-  experience: String,
-  provider: {
-    type: String,
-    enum: ["local", "facebook"],
-    default: "local",
-  },
-});
-
-module.exports = mongoose.model("Freelancer", FreelancerSchema);
+module.exports = mongoose.model("freelancer", freelancerSchema);

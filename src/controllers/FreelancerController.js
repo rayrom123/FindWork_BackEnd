@@ -6,10 +6,8 @@ const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
 const FacebookAuthServices = require("../services/FacebookAuthServices");
 const passport = require("passport");
-
 const multer = require("multer");
 const path = require("path");
-
 dotenv.config({ path: "./src/.env" });
 
 // Cấu hình multer cho việc upload file
@@ -70,7 +68,6 @@ const createFreelancer = async (req, res) => {
           message: "Username, password and email are required",
         });
       }
-
 
       // Thêm role vào dữ liệu trước khi gửi đến service
       const freelancerData = {
@@ -171,7 +168,6 @@ const login = async (req, res) => {
 const facebookLogin = (req, res) => {
   req.session.redirectTo = "http://localhost:3001/freelancer/dashboard";
   passport.authenticate("facebook", { scope: ["email"] })(req, res);
-
 };
 
 const facebookCallback = (req, res, next) => {
@@ -180,106 +176,6 @@ const facebookCallback = (req, res, next) => {
 
 const checkAuthStatus = (req, res) => {
   FacebookAuthServices.checkAuthStatus(req, res);
-};
-
-const logout = (req, res) => {
-  FacebookAuthServices.handleLogout(req, res);
-};
-
-// Controller for freelancer-related operations
-const RegisterFreelancer = (FreelancerData) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Check if username already exists
-      const existingUsername = await Freelancer.findOne({
-        username: FreelancerData.username,
-      });
-      if (existingUsername) {
-        throw new Error("Username already exists");
-      }
-
-      // Check if email already exists
-      const existingEmail = await Freelancer.findOne({
-        email: FreelancerData.email,
-      });
-      if (existingEmail) {
-        throw new Error("Email already exists");
-      }
-
-      // Hash password
-      const hashPassword = await bcrypt.hash(
-        FreelancerData.password,
-        saltRounds,
-      );
-      FreelancerData.password = hashPassword;
-
-      // Create new freelancer
-      const newFreelancer = new Freelancer({
-        ...FreelancerData,
-        project_done: 0,
-      });
-
-      // Save freelancer to database
-      const savedData = await newFreelancer.save();
-      console.log("Saved freelancer data:", savedData);
-
-      resolve(savedData);
-    } catch (e) {
-      console.error("Freelancer registration error:", e);
-      reject(e);
-    }
-  });
-
-};
-
-const facebookCallback = (req, res, next) => {
-  FacebookAuthServices.handleFacebookCallback(req, res, next);
-};
-
-
-// Update freelancer profile
-const updateFreelancerProfile = async (req, res) => {
-  try {
-    const { freelancerId } = req.params;
-    const updateData = req.body;
-
-    // Kiểm tra định dạng avatar nếu có
-    if (updateData.avatar) {
-      const validTypes = ["image/jpeg", "image/png", "image/jpg"];
-      if (!validTypes.includes(updateData.avatar.type)) {
-        return res.status(400).json({
-          status: "Error",
-          message: "Chỉ chấp nhận file ảnh định dạng JPG, JPEG hoặc PNG",
-        });
-      }
-    }
-
-    const updatedFreelancer = await Freelancer.findByIdAndUpdate(
-      freelancerId,
-      updateData,
-      { new: true },
-    );
-
-    if (!updatedFreelancer) {
-      return res.status(404).json({
-        status: "Error",
-        message: "Freelancer not found",
-      });
-    }
-
-    return res.status(200).json({
-      status: "Success",
-      message: "Profile updated successfully",
-      data: updatedFreelancer,
-    });
-  } catch (error) {
-    console.error("Update freelancer profile error:", error);
-    return res.status(400).json({
-      status: "Error",
-      message: error.message || "Failed to update profile",
-    });
-  }
-
 };
 
 const logout = (req, res) => {
@@ -340,9 +236,7 @@ module.exports = {
   createFreelancer,
   login,
   GetProfile,
-
   updateProfile,
-
   facebookLogin,
   facebookCallback,
   checkAuthStatus,

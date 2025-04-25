@@ -75,7 +75,7 @@ const login = async (req, res) => {
     const userInfo = await AuthenticateServices.checkLogin(
       email,
       password,
-      "employer"
+      "employer",
     );
 
     return res.status(200).json({
@@ -152,7 +152,7 @@ const updateEmployerProfile = (employerId, updateData) => {
       const updatedEmployer = await Employer.findByIdAndUpdate(
         employerId,
         updateData,
-        { new: true }
+        { new: true },
       );
       if (!updatedEmployer) {
         throw new Error("Employer not found");
