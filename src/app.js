@@ -6,8 +6,8 @@ const passport = require("passport");
 const dotenv = require("dotenv");
 const routes = require("./routers");
 const Database = require("./config/DatabaseConnection");
+const { initSocket } = require("./config/socket"); // <-- import hàm khởi tạo socket
 
-// Load environment variables
 dotenv.config();
 
 const app = express();
@@ -16,7 +16,7 @@ const port = process.env.PORT || 3000;
 // Middleware
 app.use(
   cors({
-    origin: "http://localhost:3001", // React app will run on port 3001
+    origin: "http://localhost:5173",
     credentials: true,
   }),
 );
@@ -31,7 +31,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       secure: process.env.NODE_ENV === "production",
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: 24 * 60 * 60 * 1000,
     },
   }),
 );
@@ -46,7 +46,11 @@ Database.connectDB();
 // Routes
 routes(app);
 
-// Start server
-app.listen(port, () => {
+// Tạo server và truyền vào socket
+const http = require("http");
+const server = http.createServer(app);
+initSocket(server);
+
+server.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
