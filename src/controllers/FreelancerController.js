@@ -6,8 +6,10 @@ const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
 const FacebookAuthServices = require("../services/FacebookAuthServices");
 const passport = require("passport");
+
 const multer = require("multer");
 const path = require("path");
+
 dotenv.config({ path: "./src/.env" });
 
 // Cấu hình multer cho việc upload file
@@ -68,6 +70,7 @@ const createFreelancer = async (req, res) => {
           message: "Username, password and email are required",
         });
       }
+
 
       // Thêm role vào dữ liệu trước khi gửi đến service
       const freelancerData = {
@@ -168,6 +171,7 @@ const login = async (req, res) => {
 const facebookLogin = (req, res) => {
   req.session.redirectTo = "http://localhost:3001/freelancer/dashboard";
   passport.authenticate("facebook", { scope: ["email"] })(req, res);
+
 };
 
 const facebookCallback = (req, res, next) => {
@@ -225,25 +229,13 @@ const RegisterFreelancer = (FreelancerData) => {
       reject(e);
     }
   });
+
 };
 
-// Get freelancer profile
-const getFreelancerProfile = (freelancerId) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Find freelancer by ID
-      const freelancer = await Freelancer.findById(freelancerId);
-      if (!freelancer) {
-        throw new Error("Freelancer not found");
-      }
-
-      resolve(freelancer);
-    } catch (e) {
-      console.error("Get freelancer profile error:", e);
-      reject(e);
-    }
-  });
+const facebookCallback = (req, res, next) => {
+  FacebookAuthServices.handleFacebookCallback(req, res, next);
 };
+
 
 // Update freelancer profile
 const updateFreelancerProfile = async (req, res) => {
@@ -287,25 +279,11 @@ const updateFreelancerProfile = async (req, res) => {
       message: error.message || "Failed to update profile",
     });
   }
+
 };
 
-// Delete freelancer account
-const deleteFreelancer = (freelancerId) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Find and delete freelancer
-      const deletedFreelancer =
-        await Freelancer.findByIdAndDelete(freelancerId);
-      if (!deletedFreelancer) {
-        throw new Error("Freelancer not found");
-      }
-
-      resolve(deletedFreelancer);
-    } catch (e) {
-      console.error("Delete freelancer error:", e);
-      reject(e);
-    }
-  });
+const logout = (req, res) => {
+  FacebookAuthServices.handleLogout(req, res);
 };
 
 // Update freelancer profile
@@ -361,12 +339,10 @@ const updateProfile = async (req, res) => {
 module.exports = {
   createFreelancer,
   login,
-  RegisterFreelancer,
-  getFreelancerProfile,
-  updateFreelancerProfile,
-  deleteFreelancer,
   GetProfile,
+
   updateProfile,
+
   facebookLogin,
   facebookCallback,
   checkAuthStatus,

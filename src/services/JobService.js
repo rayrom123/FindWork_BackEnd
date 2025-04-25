@@ -1,3 +1,4 @@
+
 const Job = require("../models/Job");
 const Application = require("../models/Applications");
 
@@ -158,6 +159,7 @@ class JobService {
     }
   }
 
+
   // Get job by ID
   static async getJobById(jobId) {
     try {
@@ -187,6 +189,7 @@ class JobService {
       throw e;
     }
   }
+
   // Update job
   static async updateJob(jobId, updateData) {
     try {
