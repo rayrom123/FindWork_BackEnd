@@ -9,8 +9,6 @@ router.post("/login", EmployerController.login);
 router.get("/facebook", EmployerController.facebookLogin);
 router.get("/facebook/callback", EmployerController.facebookCallback);
 
-
-
 // Check authentication status
 router.get("/status", EmployerController.checkAuthStatus);
 

@@ -12,20 +12,17 @@ const { initSocket } = require("./config/socket"); // <-- import hàm khởi t�
 const Passport = require("./config/Passport");
 const path = require("path");
 
-
 dotenv.config();
-
-
+Database.connectDB();
 
 const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(
   cors({
-
     origin: "http://localhost:5173",
     credentials: true,
-  })
+  }),
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -40,7 +37,7 @@ app.use(
       secure: process.env.NODE_ENV === "production",
       maxAge: 24 * 60 * 60 * 1000,
     },
-  })
+  }),
 );
 
 // Initialize passport
@@ -54,12 +51,11 @@ app.use(
     setHeaders: (res, path) => {
       res.set("Access-Control-Allow-Origin", "*");
     },
-  })
+  }),
 );
 
 routes(app);
 Passport(app);
-
 
 // Session configuration
 app.use(
