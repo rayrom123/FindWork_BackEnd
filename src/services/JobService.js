@@ -2,7 +2,6 @@
 const Job = require("../models/Job");
 const Application = require("../models/Applications");
 
-
 // Service for job-related operations
 class JobService {
   // Create a new job posting
@@ -154,6 +153,37 @@ class JobService {
           prevPage: pageNumber > 1 ? pageNumber - 1 : null,
         },
       };
+    } catch (e) {
+      console.error("Error getting jobs:", e);
+      throw e;
+    }
+  }
+
+
+  // Get job by ID
+  static async getJobById(jobId) {
+    try {
+      const job = await Job.findById(jobId)
+        .populate("employerId", "companyName image")
+        .lean();
+
+      if (!job) {
+        throw new Error("Job not found");
+      }
+
+      return job;
+    } catch (e) {
+      console.error("Error getting job by ID:", e);
+      throw e;
+    }
+  }
+
+  static async getJobsByEmployer(employerId) {
+    try {
+      console.log("Getting jobs for employerId:", employerId);
+      const jobs = await Job.find({ employerId });
+      console.log("Found jobs:", jobs);
+      return jobs;
     } catch (e) {
       console.error("Error getting jobs:", e);
       throw e;
