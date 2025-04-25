@@ -7,15 +7,12 @@ const dotenv = require("dotenv");
 const routes = require("./routers");
 
 const app = express();
-const cors = require("cors");
-const session = require("express-session");
-const passport = require("passport");
 const Database = require("./config/DatabaseConnection");
+const { initSocket } = require("./config/socket"); // <-- import hàm khởi tạo socket
 const Passport = require("./config/Passport");
 const path = require("path");
 
 
-// Load environment variables
 dotenv.config();
 
 
@@ -41,7 +38,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       secure: process.env.NODE_ENV === "production",
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: 24 * 60 * 60 * 1000,
     },
   })
 );
@@ -87,8 +84,12 @@ Database.connectDB();
 // Routes
 routes(app);
 
-// Start server
-app.listen(port, () => {
+// Tạo server và truyền vào socket
+const http = require("http");
+const server = http.createServer(app);
+initSocket(server);
+
+server.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
 

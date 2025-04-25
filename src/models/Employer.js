@@ -8,7 +8,8 @@ const employerSchema = new mongoose.Schema({
   contactEmail: { type: String, required: true, unique: true }, // Email của nhà tuyển dụng
   phoneNumber: { type: String }, // Số điện thoại liên hệ
   companyDescription: { type: String }, // Mô tả về công ty
-  location: { type: String }, // Vị trí làm việc
+  location: { type: String },
+  
   // rating: {
   //   averageRating: { type: Number, min: 1, max: 5, default: 0 }, // Điểm đánh giá trung bình
   //   totalRatings: { type: Number, default: 0 }, // Tổng số đánh giá
