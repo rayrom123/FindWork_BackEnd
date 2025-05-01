@@ -8,8 +8,8 @@ const routes = require("./routers");
 
 const app = express();
 const Database = require("./config/DatabaseConnection");
-const { initSocket } = require("./config/socket"); // <-- import hàm khởi tạo socket
-const Passport = require("./config/Passport");
+const { initSocket } = require("./config/socket");
+const Passport = require("./config/passport");
 const path = require("path");
 
 dotenv.config();
@@ -54,33 +54,13 @@ app.use(
   }),
 );
 
-routes(app);
+// Configure passport
 Passport(app);
 
-// Session configuration
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "your-secret-key",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    },
-  }),
-);
-
-// Initialize passport
-app.use(passport.initialize());
-app.use(passport.session());
-
-// Database connection
-Database.connectDB();
-
-// Routes
+// Register routes
 routes(app);
 
-// Tạo server và truyền vào socket
+// Create server and initialize socket
 const http = require("http");
 const server = http.createServer(app);
 initSocket(server);

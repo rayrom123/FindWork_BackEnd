@@ -7,7 +7,18 @@ const freelancerSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
     },
-    username: { type: String, required: true, unique: true }, // Sửa lỗi chính tả và thêm unique
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    username: {
+      type: String,
+      required: function () {
+        return this.provider === "local";
+      },
+      unique: true,
+    },
     password: {
       type: String,
       required: function () {
@@ -31,15 +42,15 @@ const freelancerSchema = new mongoose.Schema(
       ],
       default: [],
     },
-    project_done: { type: Number }, // Thay đổi kiểu dữ liệu
-    phone: { type: String }, // Thay đổi kiểu dữ liệu
-    experience: { type: String }, // Thay đổi kiểu dữ liệu
+    project_done: { type: Number },
+    phone: { type: String },
+    experience: { type: String },
     provider: {
       type: String,
-      enum: ["local", "facebook"],
+      enum: ["local", "facebook", "google"],
       default: "local",
     },
-    email: { type: String, required: true, unique: true }, // Thêm trường email và unique
+    email: { type: String, required: true, unique: true },
     location: { type: String },
   },
   { timestamps: true },

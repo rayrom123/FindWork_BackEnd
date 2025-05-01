@@ -1,11 +1,29 @@
 // models/employer.js
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 
 const employerSchema = new mongoose.Schema({
-  companyName: { type: String, required: true, unique: true }, // Tên công ty
-  password: { type: String, required: true },
+  companyName: {
+    type: String,
+    required: function () {
+      return this.provider === "local";
+    },
+    unique: true,
+  },
+  password: {
+    type: String,
+    required: function () {
+      return this.provider === "local";
+    },
+  },
   companyLogo: { type: String }, // Đường dẫn tới logo công ty (nếu có)
-  contactEmail: { type: String, required: true, unique: true }, // Email của nhà tuyển dụng
+  contactEmail: {
+    type: String,
+    required: function () {
+      return this.provider === "local";
+    },
+    unique: true,
+  },
   phoneNumber: { type: String }, // Số điện thoại liên hệ
   companyDescription: { type: String }, // Mô tả về công ty
   location: { type: String },
@@ -21,9 +39,16 @@ const employerSchema = new mongoose.Schema({
     unique: true,
     sparse: true,
   },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
   username: {
     type: String,
-    required: true,
+    required: function () {
+      return this.provider === "local";
+    },
   },
   email: {
     type: String,
@@ -38,7 +63,7 @@ const employerSchema = new mongoose.Schema({
   company: String,
   provider: {
     type: String,
-    enum: ["local", "facebook"],
+    enum: ["local", "facebook", "google"],
     default: "local",
   },
 });
