@@ -1,6 +1,6 @@
+const Job = require("../models/job");
 const JobService = require("../services/JobService");
 const Application = require("../models/Applications");
-const Job = require("../models/Job");
 const Freelancer = require("../models/Freelancer");
 
 // Controller for job-related operations
@@ -287,7 +287,68 @@ const getAppliedJobs = async (req, res) => {
     });
   }
 };
+const createOrder = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const order = await JobService.createOrder(jobId);
 
+    return res.status(200).json({
+      status: "Success",
+      message: "Order created successfully",
+      data: order,
+    });
+  } catch (error) {
+    console.error("Error creating order:", error);
+    return res.status(500).json({
+      status: "Error",
+      message: error.message || "Failed to create PayPal order",
+    });
+  }
+};
+const captureOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { jobId } = req.body;
+
+    const captureData = await JobService.captureOrder(orderId);
+
+    if (captureData.status === "COMPLETED") {
+      // Cập nhật trạng thái job và application
+      const job = await Job.findById(jobId);
+      if (!job) {
+        throw new Error("Job not found");
+      }
+
+      // Cập nhật trạng thái job
+      job.status = "Closed";
+      await job.save();
+
+      // Cập nhật trạng thái application
+      const application = await Application.findOne({ jobId });
+      if (application) {
+        application.status = "accepted";
+        await application.save();
+      }
+
+      return res.status(200).json({
+        status: "Success",
+        message: "Payment captured successfully",
+        data: {
+          job: job,
+          application: application,
+        },
+      });
+    } else {
+      throw new Error("Payment not completed");
+    }
+  } catch (error) {
+    console.error("Error capturing order:", error);
+    return res.status(500).json({
+      status: "Error",
+      message: error.message || "Failed to capture payment",
+    });
+  }
+};
 // Get applied freelancers for a specific job
 const getProposal = async (req, res) => {
   try {
@@ -465,4 +526,6 @@ module.exports = {
   getProposal,
   rejectProposal,
   acceptProposal,
+  createOrder,
+  captureOrder,
 };

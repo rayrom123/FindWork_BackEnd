@@ -5,14 +5,17 @@ const session = require("express-session");
 const passport = require("passport");
 const dotenv = require("dotenv");
 const routes = require("./routers");
-
+const path = require("path");
+const http = require("http");
 const app = express();
 const Database = require("./config/DatabaseConnection");
 const { initSocket } = require("./config/socket");
 const Passport = require("./config/passport");
-const path = require("path");
 
+// Load environment variables
 dotenv.config();
+
+// Database connection
 Database.connectDB();
 
 const port = process.env.PORT || 3000;
@@ -35,7 +38,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       secure: process.env.NODE_ENV === "production",
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   }),
 );
@@ -43,6 +46,9 @@ app.use(
 // Initialize passport
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Configure passport
+Passport(app);
 
 // Serve static files from the uploads directory
 app.use(
@@ -54,17 +60,15 @@ app.use(
   }),
 );
 
-// Configure passport
 Passport(app);
 
 // Register routes
 routes(app);
 
-// Create server and initialize socket
-const http = require("http");
 const server = http.createServer(app);
 initSocket(server);
 
+// Start server
 server.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
