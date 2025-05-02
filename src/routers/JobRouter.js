@@ -67,4 +67,21 @@ router.put(
   authRole("employer"),
   JobController.acceptProposal,
 );
+
+// Tạo order thanh toán
+router.post(
+  "/jobs/:jobId/create-order",
+  auth,
+  authRole("employer"),
+  JobController.createOrder,
+);
+
+// Xác nhận thanh toán
+router.post(
+  "/jobs/:orderId/capture",
+  auth,
+  authRole("employer"),
+  JobController.captureOrder,
+);
+
 module.exports = router;

@@ -69,7 +69,6 @@ const createFreelancer = async (req, res) => {
         });
       }
 
-      // Thêm role vào dữ liệu trước khi gửi đến service
       const freelancerData = {
         username,
         password,
@@ -80,17 +79,17 @@ const createFreelancer = async (req, res) => {
         email,
         location: location || null,
         avatar,
-        role: "freelancer",
       };
 
-      // Gọi service để đăng ký freelancer
-      const response =
+      // Sử dụng AuthService để đăng ký freelancer
+      const { freelancer, token } =
         await AuthenticateServices.registerFreelancer(freelancerData);
 
       return res.status(200).json({
         status: "Success",
         message: "Freelancer registered successfully",
-        data: response,
+        data: freelancer,
+        token,
       });
     } catch (e) {
       console.error("Freelancer registration error:", e);
@@ -137,7 +136,6 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Kiểm tra các trường bắt buộc
     if (!email || !password) {
       return res.status(400).json({
         status: "Error",
@@ -145,7 +143,7 @@ const login = async (req, res) => {
       });
     }
 
-    const userInfo = await AuthenticateServices.checkLogin(
+    const { user, token } = await AuthenticateServices.login(
       email,
       password,
       "freelancer",
@@ -154,8 +152,8 @@ const login = async (req, res) => {
     return res.status(200).json({
       status: "Success",
       message: "Login successful",
-      user: userInfo.user,
-      access_token: userInfo.access_token,
+      user,
+      token,
     });
   } catch (error) {
     return res.status(401).json({

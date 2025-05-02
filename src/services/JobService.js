@@ -1,6 +1,6 @@
-const Job = require("../models/Job");
+const Job = require("../models/job");
 const Application = require("../models/Applications");
-
+const axios = require("axios");
 // Service for job-related operations
 class JobService {
   // Create a new job posting
@@ -273,6 +273,56 @@ class JobService {
       console.error("Error getting applied jobs:", e);
       throw e;
     }
+  }
+
+  static async generateAccessToken() {
+    const response = await axios({
+      url: `${proccess.env.PAYPAL_BASE_URL}/v1/oauth2/token`,
+      method: "post",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      auth: {
+        username: process.env.PAYPAL_CLIENT_ID,
+        password: process.env.PAYPAL_SECRET,
+      },
+      data: "grant_type=client_credentials",
+    });
+    return response.data.access_token;
+  }
+  static async createOrder(amount, currency = "USD") {
+    const accessToken = await generateAccessToken();
+    const response = await axios.post(
+      "https://api-m.sandbox.paypal.com/v2/checkout/orders",
+      {
+        intent: "CAPTURE",
+        purchase_units: [
+          { amount: { currency_code: currency, value: amount } },
+        ],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    return response.data;
+  }
+
+  static async captureOrder(jobID) {
+    const access_token = generateAccessToken();
+    const response = await axios.post(
+      `https://api-m.sandbox.paypal.com/v2/checkout/orders/${jobID}/capture`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    return response.data;
   }
 }
 
