@@ -277,7 +277,7 @@ class JobService {
 
   static async generateAccessToken() {
     const response = await axios({
-      url: `${proccess.env.PAYPAL_BASE_URL}/v1/oauth2/token`,
+      url: `${process.env.PAYPAL_BASE_URL}/v1/oauth2/token`,
       method: "post",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -290,14 +290,27 @@ class JobService {
     });
     return response.data.access_token;
   }
-  static async createOrder(amount, currency = "USD") {
-    const accessToken = await generateAccessToken();
+
+  static async createOrder(jobId) {
+    // Tìm application đã accepted
+    const application = await Application.findOne({
+      jobId,
+      status: "accepted",
+    });
+    if (!application)
+      throw new Error("Không tìm thấy đơn ứng tuyển đã được chấp nhận");
+    const accessToken = await JobService.generateAccessToken();
     const response = await axios.post(
       "https://api-m.sandbox.paypal.com/v2/checkout/orders",
       {
         intent: "CAPTURE",
         purchase_units: [
-          { amount: { currency_code: currency, value: amount } },
+          {
+            amount: {
+              currency_code: "USD",
+              value: application.bidAmount.toString(),
+            },
+          },
         ],
       },
       {
@@ -311,7 +324,7 @@ class JobService {
   }
 
   static async captureOrder(jobID) {
-    const access_token = generateAccessToken();
+    const access_token = await JobService.generateAccessToken();
     const response = await axios.post(
       `https://api-m.sandbox.paypal.com/v2/checkout/orders/${jobID}/capture`,
       {},

@@ -1,35 +1,54 @@
-const Freelancer = require("../models/Freelancer"); // Đảm bảo đường dẫn đúng
+const Freelancer = require("../models/Freelancer");
+const Employer = require("../models/Employer");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 dotenv.config({ path: "./src/.env" });
 
 class FacebookAuthServices {
-  static async findOrCreateUser(profile) {
+  static async findOrCreateUser(profile, role) {
     try {
-      const profileId = profile.id;
-      const displayName = profile.displayName;
-      const avatar = profile.photos?.[0]?.value || "";
+      let user;
+      const email = profile._json.email || `${profile.id}@facebook.com`;
+      const facebookId = profile.id;
 
-      let user = await Freelancer.findOne({
-        facebookId: profileId,
-      });
-
-      if (!user) {
-        const timestamp = Date.now();
-        const uniqueUsername = `${displayName}_${timestamp}`;
-        user = await Freelancer.create({
-          username: uniqueUsername,
-          facebookId: profileId,
-          avatar: avatar,
-          fname: displayName,
-          provider: "facebook",
+      if (role === "freelancer") {
+        user = await Freelancer.findOne({
+          $or: [{ email }, { facebookId }],
         });
-      }
 
-      console.log("Created/Found freelancer:", {
-        id: user._id,
-        provider: user.provider,
-      });
+        if (!user) {
+          user = new Freelancer({
+            email,
+            facebookId,
+            provider: "facebook",
+            fname: profile.displayName,
+            image: profile.photos?.[0]?.value,
+            username:
+              profile.displayName.toLowerCase().replace(/\s+/g, "_") +
+              "_" +
+              Date.now(),
+            password: Math.random().toString(36).slice(-8),
+          });
+          await user.save();
+        }
+      } else if (role === "employer") {
+        user = await Employer.findOne({
+          $or: [{ contactEmail: email }, { facebookId }],
+        });
+
+        if (!user) {
+          user = new Employer({
+            contactEmail: email,
+            facebookId,
+            provider: "facebook",
+            fname: profile.displayName,
+            image: profile.photos?.[0]?.value,
+            companyName: profile.displayName,
+            password: Math.random().toString(36).slice(-8),
+          });
+          await user.save();
+        }
+      }
 
       return user;
     } catch (error) {
@@ -38,28 +57,38 @@ class FacebookAuthServices {
     }
   }
 
-  static async findUserById(id) {
+  static async findUserById(id, role) {
     try {
-      const user = await Freelancer.findById(id);
-      return user;
+      if (role === "freelancer") {
+        return await Freelancer.findById(id);
+      } else if (role === "employer") {
+        return await Employer.findById(id);
+      }
+      throw new Error("Invalid role");
     } catch (error) {
       console.error("Error in findUserById:", error);
       throw error;
     }
   }
 
-  static async generateToken(user) {
+  static async generateToken(user, role) {
     try {
       const token = jwt.sign(
         {
           user_id: user._id,
+          role: role,
           provider: "facebook",
         },
         process.env.JWT_SECRET,
         { expiresIn: "1d" },
       );
 
-      const userData = await Freelancer.findById(user._id);
+      let userData;
+      if (role === "freelancer") {
+        userData = await Freelancer.findById(user._id);
+      } else if (role === "employer") {
+        userData = await Employer.findById(user._id);
+      }
 
       return {
         access_token: token,
@@ -82,7 +111,12 @@ class FacebookAuthServices {
         throw new Error("Invalid provider");
       }
 
-      const user = await Freelancer.findById(decoded.user_id);
+      let user;
+      if (decoded.role === "freelancer") {
+        user = await Freelancer.findById(decoded.user_id);
+      } else if (decoded.role === "employer") {
+        user = await Employer.findById(decoded.user_id);
+      }
 
       if (!user) {
         throw new Error("User not found");
@@ -100,7 +134,7 @@ class FacebookAuthServices {
   static async refreshToken(token) {
     try {
       const { user } = await this.verifyToken(token);
-      return await this.generateToken(user);
+      return await this.generateToken(user, user.role);
     } catch (error) {
       console.error("Error refreshing token:", error);
       throw error;

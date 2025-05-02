@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const JobController = require("../controllers/JobController");
 const { auth, authRole } = require("../middleware/auth");
+const JobService = require("../services/JobService");
 
 // Job posting routes
 // Tạo một job posting mới (chỉ dành cho employer)

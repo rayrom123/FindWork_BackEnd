@@ -16,6 +16,19 @@ router.get(
   }),
 );
 
+// Facebook OAuth route cho employer
+router.get(
+  "/employer/facebook",
+  (req, res, next) => {
+    req.session.redirectTo = "http://localhost:5173/employer/callback";
+    next();
+  },
+  passport.authenticate("facebook", {
+    scope: ["public_profile"],
+    state: "employer",
+  }),
+);
+
 // Callback handler cho Facebook
 router.get(
   "/facebook/callback",
@@ -28,13 +41,19 @@ router.get(
   },
   async (req, res) => {
     try {
+      const role = req.query.state;
+      if (!["employer", "freelancer"].includes(role)) {
+        throw new Error("Invalid role");
+      }
+
       // Generate JWT token và lấy thông tin user
       const { access_token, user } = await FacebookAuthServices.generateToken(
         req.user,
-      ); // Không cần role ở đây
+        role,
+      );
 
       const redirectTo =
-        req.session.redirectTo || "http://localhost:5173/freelancer/callback";
+        req.session.redirectTo || `http://localhost:5173/${role}/callback`;
       delete req.session.redirectTo;
 
       // Redirect với token và user data trong URL
@@ -45,6 +64,7 @@ router.get(
       console.log("Facebook OAuth callback success:", {
         // Log phù hợp
         userId: user._id,
+        role: role,
         redirectTo: redirectUrl.toString(),
       });
 

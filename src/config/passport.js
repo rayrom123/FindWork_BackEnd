@@ -11,7 +11,7 @@ const configurePassport = (app) => {
   passport.serializeUser((user, done) => {
     done(null, {
       id: user.id,
-      role: user.role,
+      role: user.role || "freelancer",
       provider: user.provider,
     });
   });
@@ -21,12 +21,16 @@ const configurePassport = (app) => {
     try {
       let user;
       if (provider === "facebook") {
-        user = await FacebookAuthServices.findUserById(id, role);
+        user = await FacebookAuthServices.findUserById(
+          id,
+          role || "freelancer",
+        );
       } else if (provider === "google") {
         user = await GoogleAuthServices.findUserById(id, role);
       }
       done(null, user);
     } catch (error) {
+      console.error("Deserialize user error:", error);
       done(error, null);
     }
   });
@@ -40,11 +44,11 @@ const configurePassport = (app) => {
         callbackURL: "/auth/facebook/callback",
         passReqToCallback: true,
       },
-      async (accessToken, refreshToken, profile, done) => {
+      async (req, accessToken, refreshToken, profile, done) => {
         try {
           console.log("Facebook OAuth callback received:", {
             profileId: profile.id,
-            email: profile.emails?.[0]?.value,
+            email: profile._json.email,
             state: req.query.state,
           });
 
@@ -60,6 +64,9 @@ const configurePassport = (app) => {
             profile,
             role,
           );
+
+          // Thêm role vào user object
+          user.role = role;
 
           return done(null, user);
         } catch (error) {
