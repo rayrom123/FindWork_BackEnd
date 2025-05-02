@@ -37,21 +37,33 @@ const configurePassport = (app) => {
       {
         clientID: process.env.FACEBOOK_APP_ID,
         clientSecret: process.env.FACEBOOK_APP_SECRET,
-        callbackURL: "http://localhost:3000/auth/facebook/callback",
-        profileFields: ["id", "displayName", "email", "photos"],
+        callbackURL: "/auth/facebook/callback",
+        passReqToCallback: true,
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
-          // Determine role based on the route being accessed
-          const role = req.baseUrl.includes("employer")
-            ? "employer"
-            : "freelancer";
+          console.log("Facebook OAuth callback received:", {
+            profileId: profile.id,
+            email: profile.emails?.[0]?.value,
+            state: req.query.state,
+          });
+
+          // Get role from state parameter
+          const role = req.query.state || "freelancer";
+
+          if (!["employer", "freelancer"].includes(role)) {
+            throw new Error("Invalid role specified in state parameter");
+          }
+
+          // Find or create user
           const user = await FacebookAuthServices.findOrCreateUser(
             profile,
             role,
           );
+
           return done(null, user);
         } catch (error) {
+          console.error("Facebook OAuth error:", error);
           return done(error, false);
         }
       },
