@@ -143,17 +143,16 @@ const login = async (req, res) => {
       });
     }
 
-    const { user, token } = await AuthenticateServices.login(
+    const userInfo = await AuthenticateServices.checkLogin(
       email,
       password,
       "freelancer",
     );
-
     return res.status(200).json({
       status: "Success",
       message: "Login successful",
-      user,
-      token,
+      user: userInfo.user,
+      access_token: userInfo.access_token,
     });
   } catch (error) {
     return res.status(401).json({
