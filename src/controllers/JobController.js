@@ -321,6 +321,7 @@ const captureOrder = async (req, res) => {
 
       // Cập nhật trạng thái job
       job.status = "Closed";
+      job.pay = true;
       await job.save();
 
       // Cập nhật trạng thái application

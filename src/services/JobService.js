@@ -128,6 +128,7 @@ class JobService {
               timeEstimation: 1,
               skills: 1,
               status: 1,
+              pay: 1,
               createdAt: 1,
               updatedAt: 1,
               "employer.companyName": 1,
@@ -312,6 +313,10 @@ class JobService {
             },
           },
         ],
+        application_context: {
+          return_url: `http://localhost:5173/payment/return?jobId=${jobId}`,
+          cancel_url: "http://localhost:5173/employer/dashboard",
+        },
       },
       {
         headers: {
@@ -320,7 +325,11 @@ class JobService {
         },
       },
     );
-    return response.data;
+    // Lấy approvalUrl từ response
+    const approvalUrl = response.data.links.find(
+      (link) => link.rel === "approve",
+    )?.href;
+    return { approvalUrl };
   }
 
   static async captureOrder(jobID) {
