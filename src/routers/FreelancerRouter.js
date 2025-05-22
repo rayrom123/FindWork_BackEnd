@@ -25,4 +25,11 @@ router.get("/facebook/callback", FreelancerController.facebookCallback);
 router.get("/status", FreelancerController.checkAuthStatus);
 router.get("/logout", FreelancerController.logout);
 
+router.post(
+  "/recommend/jobs-for-freelancer",
+  auth, // Yêu cầu xác thực
+  authRole("freelancer"), // Chỉ freelancer mới có thể yêu cầu đề xuất cho mình
+  FreelancerController.recommendJobsForFreelancer,
+);
+
 module.exports = router;
