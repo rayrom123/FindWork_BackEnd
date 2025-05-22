@@ -21,7 +21,7 @@ router.get(
 
 // Lấy danh sách các job mà freelancer đã apply
 router.get(
-  "/jobs/applied",
+  "/freelancer/applied",
   auth,
   authRole("freelancer"),
   JobController.getAppliedJobs,
