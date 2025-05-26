@@ -11,6 +11,7 @@ const app = express();
 const Database = require("./config/DatabaseConnection");
 const { initSocket } = require("./config/socket");
 const Passport = require("./config/passport");
+app.use("/uploads", express.static("uploads"));
 
 // Load environment variables
 dotenv.config();

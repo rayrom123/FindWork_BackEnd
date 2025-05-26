@@ -6,6 +6,7 @@ const FacebookAuthServices = require("../services/FacebookAuthServices");
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
+const crypto = require("crypto");
 dotenv.config({ path: "./src/.env" });
 
 const createEmployer = async (req, res) => {
@@ -27,6 +28,7 @@ const createEmployer = async (req, res) => {
       ...req.body,
       password: companyPassword,
       role: "employer",
+      publicKey: crypto.randomBytes(32).toString("hex"),
     };
     delete employerData.companyPassword;
 
