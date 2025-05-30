@@ -52,8 +52,12 @@ const freelancerSchema = new mongoose.Schema(
     },
     email: { type: String, required: true, unique: true },
     location: { type: String },
+
+    publicKey: { type: String }, // Thêm vào employerSchema và freelancerSchema
+    encryptedPrivateKey: { type: String },
   },
   { timestamps: true },
+
 );
 
 module.exports = mongoose.model("freelancer", freelancerSchema);

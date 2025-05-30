@@ -58,6 +58,8 @@ const createFreelancer = async (req, res) => {
         experience,
         email,
         location,
+        publicKey,
+        encryptedPrivateKey,
       } = req.body;
       const avatar = req.file ? req.file.path.replace(/\\/g, "/") : null;
 
@@ -79,7 +81,18 @@ const createFreelancer = async (req, res) => {
         email,
         location: location || null,
         avatar,
+        publicKey,              // Thêm dòng này
+        encryptedPrivateKey,    // Thêm dòng này
       };
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const isCheckMail = emailRegex.test(email);
+      if (!isCheckMail) {
+        return res.status(400).json({
+          status: "Error",
+          message: "Invalid email format",
+        });
+      }
 
       // Sử dụng AuthService để đăng ký freelancer
       const { freelancer, token } =
