@@ -290,7 +290,23 @@ const getAppliedJobs = async (req, res) => {
 const createOrder = async (req, res) => {
   try {
     const { jobId } = req.params;
+    console.log(
+      "[PayPal Create Order] Starting create order process for job:",
+      jobId,
+    );
+
+    // Check if job exists
+    const job = await Job.findById(jobId);
+    if (!job) {
+      console.log("[PayPal Create Order] Error: Job not found for ID:", jobId);
+      return res.status(404).json({
+        status: "Error",
+        message: "Job not found",
+      });
+    }
+
     const order = await JobService.createOrder(jobId);
+    console.log("[PayPal Create Order] Order created successfully:", order);
 
     return res.status(200).json({
       status: "Success",
@@ -298,7 +314,7 @@ const createOrder = async (req, res) => {
       data: order,
     });
   } catch (error) {
-    console.error("Error creating order:", error);
+    console.error("[PayPal Create Order] Error creating order:", error);
     return res.status(500).json({
       status: "Error",
       message: error.message || "Failed to create PayPal order",
@@ -307,28 +323,90 @@ const createOrder = async (req, res) => {
 };
 const captureOrder = async (req, res) => {
   try {
-    const { orderId } = req.params;
-    const { jobId } = req.body;
+    const { jobId } = req.params;
+    const { orderId } = req.body;
 
+    console.log("[PayPal Capture] Starting capture process", {
+      orderId,
+      jobId,
+      body: req.body,
+      params: req.params,
+    });
+
+    // Validate orderId
+    if (!orderId) {
+      console.log(
+        "[PayPal Capture] Error: Order ID is missing in request body",
+      );
+      return res.status(400).json({
+        status: "Error",
+        message: "Order ID is required in request body",
+      });
+    }
+
+    // Check if job exists before capturing payment
+    console.log("[PayPal Capture] Looking up job:", jobId);
+    const job = await Job.findById(jobId);
+    if (!job) {
+      console.log("[PayPal Capture] Error: Job not found for ID:", jobId);
+      return res.status(404).json({
+        status: "Error",
+        message: "Job not found",
+      });
+    }
+    console.log("[PayPal Capture] Found job:", {
+      jobId: job._id,
+      title: job.title,
+      status: job.status,
+    });
+
+    // Capture PayPal payment
+    console.log(
+      "[PayPal Capture] Attempting to capture PayPal payment for order:",
+      orderId,
+    );
     const captureData = await JobService.captureOrder(orderId);
+    console.log("[PayPal Capture] PayPal capture response:", captureData);
 
     if (captureData.status === "COMPLETED") {
-      // Cập nhật trạng thái job và application
-      const job = await Job.findById(jobId);
-      if (!job) {
-        throw new Error("Job not found");
-      }
+      console.log(
+        "[PayPal Capture] Payment completed successfully, updating job and application status",
+      );
 
-      // Cập nhật trạng thái job
-      job.status = "Closed";
-      job.pay = true;
-      await job.save();
-
-      // Cập nhật trạng thái application
+      // Update application status and payment
       const application = await Application.findOne({ jobId });
       if (application) {
         application.status = "accepted";
+        application.pay = true;
         await application.save();
+        console.log("[PayPal Capture] Updated application status:", {
+          applicationId: application._id,
+          newStatus: application.status,
+          pay: application.pay,
+        });
+
+        // Add freelancer to job's appliedFreelancers if not already present
+        if (!job.appliedFreelancers.includes(application.freelancerId)) {
+          job.appliedFreelancers.push(application.freelancerId);
+          await job.save();
+          console.log(
+            "[PayPal Capture] Added freelancer to job's appliedFreelancers:",
+            {
+              jobId: job._id,
+              freelancerId: application.freelancerId,
+            },
+          );
+        } else {
+          console.log(
+            "[PayPal Capture] Freelancer already in appliedFreelancers:",
+            {
+              jobId: job._id,
+              freelancerId: application.freelancerId,
+            },
+          );
+        }
+      } else {
+        console.log("[PayPal Capture] No application found for job:", jobId);
       }
 
       return res.status(200).json({
@@ -340,10 +418,21 @@ const captureOrder = async (req, res) => {
         },
       });
     } else {
-      throw new Error("Payment not completed");
+      console.log(
+        "[PayPal Capture] Error: Payment not completed. Status:",
+        captureData.status,
+      );
+      return res.status(400).json({
+        status: "Error",
+        message: "Payment not completed",
+      });
     }
   } catch (error) {
-    console.error("Error capturing order:", error);
+    console.error("[PayPal Capture] Error capturing order:", error);
+    console.error("[PayPal Capture] Error details:", {
+      message: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json({
       status: "Error",
       message: error.message || "Failed to capture payment",

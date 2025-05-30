@@ -7,7 +7,6 @@ const multer = require("multer");
 const path = require("path");
 const { getChatGptResponse } = require("../config/openai");
 
-
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/"); // Thư mục lưu ảnh
@@ -62,8 +61,12 @@ const getAllChattedUsers = async (req, res) => {
 
     // Fetch freelancers and employers based on the user IDs
     const [freelancers, employers] = await Promise.all([
-      freelancer.find({ _id: { $in: userIds } }).select("username email publicKey"),
-      employer.find({ _id: { $in: userIds } }).select("companyName email publicKey"),
+      freelancer
+        .find({ _id: { $in: userIds } })
+        .select("username email publicKey"),
+      employer
+        .find({ _id: { $in: userIds } })
+        .select("companyName email publicKey"),
     ]);
 
     // Combine both results và thêm trường publicKey cho mỗi user

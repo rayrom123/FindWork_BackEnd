@@ -57,7 +57,6 @@ const freelancerSchema = new mongoose.Schema(
     encryptedPrivateKey: { type: String },
   },
   { timestamps: true },
-
 );
 
 module.exports = mongoose.model("freelancer", freelancerSchema);

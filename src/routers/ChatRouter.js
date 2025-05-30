@@ -16,7 +16,12 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.get("/users", auth, ChatController.getAllChattedUsers);
-router.post("/send/:id", auth,upload.single("file"), ChatController.sendMessage);
+router.post(
+  "/send/:id",
+  auth,
+  upload.single("file"),
+  ChatController.sendMessage,
+);
 router.get("/getmessages/:id", auth, ChatController.getMessages); // Get messages between two users
-router.get("/chatbot",auth,  ChatController.getChatBotResponse);
+router.get("/chatbot", auth, ChatController.getChatBotResponse);
 module.exports = router;

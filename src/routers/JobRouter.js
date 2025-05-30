@@ -79,7 +79,7 @@ router.post(
 
 // Xác nhận thanh toán
 router.post(
-  "/jobs/:orderId/capture",
+  "/jobs/:jobId/capture",
   auth,
   authRole("employer"),
   JobController.captureOrder,

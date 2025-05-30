@@ -99,7 +99,6 @@ const login = async (req, res) => {
   }
 };
 
-
 // Get employer profile
 const getEmployerProfile = (employerId) => {
   return new Promise(async (resolve, reject) => {
