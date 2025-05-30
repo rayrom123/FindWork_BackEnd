@@ -30,6 +30,7 @@ class AuthenticateServices {
 
       // Save employer to database
       await employer.save();
+      console.log("Employer registered successfully:", employer);
 
       // Generate JWT token
       const token = jwt.sign(

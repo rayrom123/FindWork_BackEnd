@@ -11,6 +11,7 @@ const app = express();
 const Database = require("./config/DatabaseConnection");
 const { initSocket } = require("./config/socket");
 const Passport = require("./config/passport");
+
 app.use("/uploads", express.static("uploads"));
 
 // Load environment variables
@@ -74,4 +75,6 @@ server.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
 
-module.exports = app;
+module.exports = {
+  app
+};
