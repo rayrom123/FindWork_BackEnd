@@ -6,6 +6,7 @@ const FacebookAuthServices = require("../services/FacebookAuthServices");
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
+const crypto = require("crypto");
 dotenv.config({ path: "./src/.env" });
 
 const createEmployer = async (req, res) => {
@@ -21,12 +22,16 @@ const createEmployer = async (req, res) => {
       companyDescription,
       location,
       role,
+      publicKey,
+      encryptedPrivateKey,
     } = req.body;
 
     const employerData = {
       ...req.body,
       password: companyPassword,
       role: "employer",
+      publicKey: publicKey,
+      encryptedPrivateKey: encryptedPrivateKey,
     };
     delete employerData.companyPassword;
 
@@ -53,6 +58,7 @@ const createEmployer = async (req, res) => {
       data: response,
     });
   } catch (e) {
+    console.error("Employer registration error:", e);
     return res.status(400).json({
       status: "Error",
       message: e.message || "Registration failed",
@@ -91,39 +97,6 @@ const login = async (req, res) => {
       message: e.message,
     });
   }
-};
-
-// Controller for employer-related operations
-const RegisterEmployer = (EmployerData) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Check if email already exists
-      const existingEmail = await Employer.findOne({
-        contactEmail: EmployerData.contactEmail,
-      });
-      if (existingEmail) {
-        throw new Error("Email already exists");
-      }
-
-      // Hash password
-      const hashPassword = await bcrypt.hash(EmployerData.password, saltRounds);
-      EmployerData.password = hashPassword;
-
-      // Create new employer
-      const newEmployer = new Employer({
-        ...EmployerData,
-      });
-
-      // Save employer to database
-      const savedData = await newEmployer.save();
-      console.log("Saved employer data:", savedData);
-
-      resolve(savedData);
-    } catch (e) {
-      console.error("Employer registration error:", e);
-      reject(e);
-    }
-  });
 };
 
 // Get employer profile
@@ -203,7 +176,6 @@ const logout = (req, res) => {
 module.exports = {
   createEmployer,
   login,
-  RegisterEmployer,
   getEmployerProfile,
   updateEmployerProfile,
   deleteEmployer,

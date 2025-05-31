@@ -26,6 +26,10 @@ const applicationSchema = new mongoose.Schema(
       enum: ["pending", "accepted", "rejected"],
       default: "pending",
     },
+    pay: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );

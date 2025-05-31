@@ -296,7 +296,6 @@ class JobService {
     // Tìm application đã accepted
     const application = await Application.findOne({
       jobId,
-      status: "accepted",
     });
     if (!application)
       throw new Error("Không tìm thấy đơn ứng tuyển đã được chấp nhận");

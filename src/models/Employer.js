@@ -44,17 +44,7 @@ const employerSchema = new mongoose.Schema({
     unique: true,
     sparse: true,
   },
-  username: {
-    type: String,
-    required: function () {
-      return this.provider === "local";
-    },
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
+
   fname: String,
   birthday: Date,
   image: String,
@@ -66,6 +56,9 @@ const employerSchema = new mongoose.Schema({
     enum: ["local", "facebook", "google"],
     default: "local",
   },
+
+  publicKey: { type: String }, // Thêm vào employerSchema và freelancerSchema
+  encryptedPrivateKey: { type: String },
 });
 
 const employer = mongoose.model("employer", employerSchema);
