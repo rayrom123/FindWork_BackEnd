@@ -1,7 +1,11 @@
-const Job = require("../models/job");
+const Job = require("../models/Job");
 const JobService = require("../services/JobService");
 const Application = require("../models/Applications");
 const Freelancer = require("../models/Freelancer");
+const axios = require("axios");
+const dotenv = require("dotenv");
+
+dotenv.config({ path: "./src/.env" });
 
 // Controller for job-related operations
 const createJob = async (req, res) => {
