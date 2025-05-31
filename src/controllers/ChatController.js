@@ -3,6 +3,19 @@ const employer = require("../models/Employer");
 const Message = require("../models/Message");
 const mongoose = require("mongoose");
 const { getIO } = require("../config/socket");
+const multer = require("multer");
+const path = require("path");
+const { getChatGptResponse } = require("../config/openai");
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/"); // Thư mục lưu ảnh
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+const upload = multer({ storage });
 
 const getAllChattedUsers = async (req, res) => {
   try {
@@ -48,12 +61,21 @@ const getAllChattedUsers = async (req, res) => {
 
     // Fetch freelancers and employers based on the user IDs
     const [freelancers, employers] = await Promise.all([
-      freelancer.find({ _id: { $in: userIds } }).select("username"),
-      employer.find({ _id: { $in: userIds } }).select("companyName"),
+      freelancer
+        .find({ _id: { $in: userIds } })
+        .select("username email publicKey"),
+      employer
+        .find({ _id: { $in: userIds } })
+        .select("companyName email publicKey"),
     ]);
 
-    // Combine both results
-    const chattedUsers = [...freelancers, ...employers];
+    // Combine both results và thêm trường publicKey cho mỗi user
+    const chattedUsers = [
+      ...freelancers.map((u) => u.toObject()),
+      ...employers.map((u) => u.toObject()),
+    ];
+
+    console.log("Chatted users:", chattedUsers); // Debugging: Check chatted users
 
     res.status(200).json(chattedUsers);
   } catch (error) {
@@ -64,43 +86,42 @@ const getAllChattedUsers = async (req, res) => {
 
 const sendMessage = async (req, res) => {
   try {
-    const { text, image } = req.body;
+    const { textForReceiver, textForSender } = req.body;
     const { id: receiverID } = req.params;
-    const senderID = req.user._id; // Lấy từ xác thực, không lấy từ body/header
+    const senderID = req.user._id;
 
-    let imageURL;
-    if (image) {
-      const upLoad = await cloudinary.uploader.upload(image);
-      imageURL = upLoad.secure_url;
+    let fileURL = null;
+    if (req.file) {
+      fileURL = `/uploads/${req.file.filename}`;
     }
 
-    if (!text && !image) {
+    if (!textForReceiver && !textForSender && !fileURL) {
       return res
         .status(400)
-        .json({ error: "Please provide a message or an image" });
+        .json({ error: "Please provide a message or a file" });
     }
 
     const newMessage = new Message({
       senderID,
       receiverID,
-      text,
-      image: imageURL,
+      textForReceiver,
+      textForSender,
+      file: fileURL, // Đổi từ image sang file
     });
 
     await newMessage.save();
 
     const io = getIO();
-    // Đảm bảo ép userID về string khi emit để FE nhận được sự kiện
     io.to(String(senderID)).emit("newMessage", newMessage);
     io.to(String(receiverID)).emit("newMessage", newMessage);
-    console.log("Emit newMessage to:", String(senderID), String(receiverID));
 
     res.status(201).json({
       message: "Message sent successfully",
       data: newMessage,
     });
+    console.log("Gửi tin nhắn thành công:", newMessage);
   } catch (error) {
-    console.error("Error sending message:", error); // Debugging: Check error details
+    console.error("Error sending message:", error);
     res.status(500).json({ error: "Failed to send message" });
   }
 };
@@ -124,8 +145,23 @@ const getMessages = async (req, res) => {
   }
 };
 
+const getChatBotResponse = async (req, res) => {
+  try {
+    const prompt = req.query.question;
+    console.log("Tin nhắn gửi cho chatbot:", prompt);
+    const response = await getChatGptResponse(prompt);
+
+    console.log("Phản hồi từ chatbot:", response);
+    res.json({ answer: response }); // Sửa key thành answer
+  } catch (error) {
+    console.log("Lỗi khi lấy phản hồi từ chatbot be:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getAllChattedUsers,
   sendMessage,
   getMessages,
+  getChatBotResponse,
 };
