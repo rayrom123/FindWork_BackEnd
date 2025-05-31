@@ -81,8 +81,8 @@ const createFreelancer = async (req, res) => {
         email,
         location: location || null,
         avatar,
-        publicKey,              // Thêm dòng này
-        encryptedPrivateKey,    // Thêm dòng này
+        publicKey, // Thêm dòng này
+        encryptedPrivateKey, // Thêm dòng này
       };
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
