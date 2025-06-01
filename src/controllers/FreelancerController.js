@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
-const FacebookAuthServices = require("../services/FacebookAuthServices");
+
 const passport = require("passport");
 const multer = require("multer");
 const path = require("path");
@@ -175,23 +175,6 @@ const login = async (req, res) => {
       message: error.message,
     });
   }
-};
-
-const facebookLogin = (req, res) => {
-  req.session.redirectTo = "http://localhost:3001/freelancer/dashboard";
-  passport.authenticate("facebook", { scope: ["email"] })(req, res);
-};
-
-const facebookCallback = (req, res, next) => {
-  FacebookAuthServices.handleFacebookCallback(req, res, next);
-};
-
-const checkAuthStatus = (req, res) => {
-  FacebookAuthServices.checkAuthStatus(req, res);
-};
-
-const logout = (req, res) => {
-  FacebookAuthServices.handleLogout(req, res);
 };
 
 // Update freelancer profile
@@ -388,9 +371,5 @@ module.exports = {
   login,
   GetProfile,
   updateProfile,
-  facebookLogin,
-  facebookCallback,
-  checkAuthStatus,
-  logout,
   recommendJobsForFreelancer,
 };

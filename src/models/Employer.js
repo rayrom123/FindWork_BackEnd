@@ -34,11 +34,6 @@ const employerSchema = new mongoose.Schema({
   // },
   // jobPostings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'job' }], // Tham chiếu đến các bài đăng tuyển dụng (Job)
   createdAt: { type: Date, default: Date.now }, // Thời gian tạo hồ sơ
-  facebookId: {
-    type: String,
-    unique: true,
-    sparse: true,
-  },
   googleId: {
     type: String,
     unique: true,
