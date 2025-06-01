@@ -11,6 +11,7 @@ const app = express();
 const Database = require("./config/DatabaseConnection");
 const { initSocket } = require("./config/socket");
 const Passport = require("./config/passport");
+const MongoStore = require("connect-mongo");
 
 app.use("/uploads", express.static("uploads"));
 
@@ -35,9 +36,13 @@ app.use(express.urlencoded({ extended: true }));
 // Session configuration
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "your-secret-key",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGODB_URI,
+      ttl: 24 * 60 * 60,
+    }),
     cookie: {
       secure: process.env.NODE_ENV === "production",
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
