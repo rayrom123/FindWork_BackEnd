@@ -313,8 +313,9 @@ class JobService {
           },
         ],
         application_context: {
-          return_url: `http://localhost:5173/payment/return?jobId=${jobId}`,
-          cancel_url: "http://localhost:5173/employer/dashboard",
+          return_url: `https://findwork-backend.onrender.com/payment/return?jobId=${jobId}`,
+          cancel_url:
+            "https://findwork-backend.onrender.com/employer/dashboard",
         },
       },
       {
