@@ -313,9 +313,8 @@ class JobService {
           },
         ],
         application_context: {
-          return_url: `https://findwork-backend.onrender.com/payment/return?jobId=${jobId}`,
-          cancel_url:
-            "https://findwork-backend.onrender.com/employer/dashboard",
+          return_url: `https://web-fe-deploy.vercel.app/payment/return?jobId=${jobId}`,
+          cancel_url: "https://web-fe-deploy.vercel.app/employer/dashboard",
         },
       },
       {
