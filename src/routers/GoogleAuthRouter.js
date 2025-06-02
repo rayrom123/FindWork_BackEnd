@@ -7,7 +7,8 @@ const GoogleAuthServices = require("../services/GoogleAuthServices");
 router.get(
   "/freelancer/google",
   (req, res, next) => {
-    req.session.redirectTo = "http://localhost:5173/freelancer/callback";
+    req.session.redirectTo =
+      "https://findwork-backend.onrender.com/freelancer/callback";
     next();
   },
   passport.authenticate("google", {
@@ -20,7 +21,8 @@ router.get(
 router.get(
   "/employer/google",
   (req, res, next) => {
-    req.session.redirectTo = "http://localhost:5173/employer/callback";
+    req.session.redirectTo =
+      "https://findwork-backend.onrender.com/employer/callback";
     next();
   },
   passport.authenticate("google", {
@@ -34,7 +36,7 @@ router.get(
   "/google/callback",
   (req, res, next) => {
     passport.authenticate("google", {
-      failureRedirect: "http://localhost:5173/login",
+      failureRedirect: "https://findwork-backend.onrender.com/login",
       failureFlash: true,
     })(req, res, next);
   },
@@ -52,8 +54,8 @@ router.get(
       // Determine redirect URL based on role
       const defaultRedirect =
         role === "employer"
-          ? "http://localhost:5173/employer/callback"
-          : "http://localhost:5173/freelancer/callback";
+          ? "https://findwork-backend.onrender.com/employer/callback"
+          : "https://findwork-backend.onrender.com/freelancer/callback";
 
       const redirectTo = req.session.redirectTo || defaultRedirect;
       delete req.session.redirectTo;
@@ -73,7 +75,7 @@ router.get(
     } catch (error) {
       console.error("Error in Google callback:", error);
       res.redirect(
-        "http://localhost:5173/login?error=" +
+        "https://findwork-backend.onrender.com/login?error=" +
           encodeURIComponent(error.message),
       );
     }
