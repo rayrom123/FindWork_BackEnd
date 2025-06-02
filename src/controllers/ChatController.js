@@ -6,6 +6,7 @@ const { getIO } = require("../config/socket");
 const multer = require("multer");
 const path = require("path");
 const axios = require("axios");
+const { getGeminiResponse } = require("../config/openai");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -166,28 +167,12 @@ const getMessages = async (req, res) => {
 
 const getChatBotResponse = async (req, res) => {
   try {
-    const PALM_API_URL = process.env.PALM_API_URL;
     const prompt = req.query.question;
+    console.log("Tin nhắn gửi cho chatbot:", prompt);
+    const response = await getGeminiResponse(prompt);
 
-    const requestBody = {
-      contents: [
-        {
-          parts: [
-            {
-              text: prompt,
-            },
-          ],
-        },
-      ],
-    };
-
-    
-
-    const response = await axios.post(PALM_API_URL, requestBody);
-
-    console.log("Response from chatbot:", response.data.candidates[0].content.parts[0].text);
-
-    res.json({ answer: response.data.candidates[0].content.parts[0].text });
+    console.log("Phản hồi từ chatbot:", response);
+    res.json({ answer: response }); // Sửa key thành answer
   } catch (error) {
     console.log("Lỗi khi lấy phản hồi từ chatbot be:", error);
     res.status(500).json({ error: error.message });
@@ -195,51 +180,7 @@ const getChatBotResponse = async (req, res) => {
 };
 
 
-// const PALM_API_URL = process.env.PALM_API_URL;
 
-//     const requestBody = {
-//       contents: [
-//         {
-//           parts: [
-//             {
-//               text: prompt,
-//             },
-//           ],
-//         },
-//       ],
-//     };
-
-//     //console.log("PaLM API URL:", PALM_API_URL);
-//     const response = await axios.post(PALM_API_URL, requestBody);
-//     const predictions = response.data.candidates;
-//     if (predictions && predictions.length > 0) {
-//       const firstCandidate = predictions[0];
-//       if (
-//         firstCandidate.content &&
-//         firstCandidate.content.parts &&
-//         firstCandidate.content.parts.length > 0
-//       ) {
-//         const generatedText = firstCandidate.content.parts[0].text;
-//         //console.log("noi dung prompt: ", prompt);
-//         console.log("Nội dung AI đã trả về:", generatedText);
-
-//         // Extract JSON from the response
-//         let predictedJobIds = [];
-//         try {
-//           // Remove markdown code block markers if present
-//           const cleanText = generatedText
-//             .replace(/```json\n?|\n?```/g, "")
-//             .trim();
-//           predictedJobIds = JSON.parse(cleanText);
-//           console.log("Predicted Job IDs:", predictedJobIds);
-//         } catch (e) {
-//           console.error("Error parsing JSON from AI response:", e);
-//           return res.status(500).json({
-//             message: "Failed to parse AI response",
-//             error: e.message,
-//             rawResponse: generatedText,
-//           });
-//         }
 
 module.exports = {
   getAllChattedUsers,
