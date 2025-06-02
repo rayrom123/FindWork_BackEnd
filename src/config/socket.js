@@ -5,7 +5,7 @@ let io;
 function initSocket(server) {
   io = new Server(server, {
     cors: {
-      origin: "https://findwork-backend.onrender.com",
+      origin: "https://web-fe-deploy.vercel.app",
       methods: ["GET", "POST"],
       credentials: true,
     },
