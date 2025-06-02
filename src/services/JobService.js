@@ -313,7 +313,7 @@ class JobService {
           },
         ],
         application_context: {
-          return_url: `https://web-fe-deploy.vercel.app//employer/job/${jobId}`,
+          return_url: `https://web-fe-deploy.vercel.app/employer/return?jobId=${jobId}`,
           cancel_url: "https://web-fe-deploy.vercel.app/employer/dashboard",
         },
       },
