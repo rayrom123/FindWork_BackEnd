@@ -8,7 +8,7 @@ router.get(
   "/freelancer/google",
   (req, res, next) => {
     req.session.redirectTo =
-      "https://findwork-backend.onrender.com/freelancer/callback";
+      "https://web-fe-deploy.vercel.app//freelancer/callback";
     next();
   },
   passport.authenticate("google", {
@@ -22,7 +22,7 @@ router.get(
   "/employer/google",
   (req, res, next) => {
     req.session.redirectTo =
-      "https://findwork-backend.onrender.com/employer/callback";
+      "https://web-fe-deploy.vercel.app/employer/callback";
     next();
   },
   passport.authenticate("google", {
@@ -36,7 +36,7 @@ router.get(
   "/google/callback",
   (req, res, next) => {
     passport.authenticate("google", {
-      failureRedirect: "https://findwork-backend.onrender.com/login",
+      failureRedirect: "https://web-fe-deploy.vercel.app/login",
       failureFlash: true,
     })(req, res, next);
   },
@@ -54,8 +54,8 @@ router.get(
       // Determine redirect URL based on role
       const defaultRedirect =
         role === "employer"
-          ? "https://findwork-backend.onrender.com/employer/callback"
-          : "https://findwork-backend.onrender.com/freelancer/callback";
+          ? "https://web-fe-deploy.vercel.app/employer/callback"
+          : "https://web-fe-deploy.vercel.app/freelancer/callback";
 
       const redirectTo = req.session.redirectTo || defaultRedirect;
       delete req.session.redirectTo;
