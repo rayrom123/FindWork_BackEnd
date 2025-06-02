@@ -313,8 +313,8 @@ class JobService {
           },
         ],
         application_context: {
-          return_url: `http://localhost:5173/payment/return?jobId=${jobId}`,
-          cancel_url: "http://localhost:5173/employer/dashboard",
+          return_url: `https://web-fe-deploy.vercel.app/payment/return?jobId=${jobId}`,
+          cancel_url: "https://web-fe-deploy.vercel.app/employer/dashboard",
         },
       },
       {
