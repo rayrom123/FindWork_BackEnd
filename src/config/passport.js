@@ -1,7 +1,5 @@
 const passport = require("passport");
-const FacebookStrategy = require("passport-facebook").Strategy;
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const FacebookAuthServices = require("../services/FacebookAuthServices");
 const GoogleAuthServices = require("../services/GoogleAuthServices");
 const dotenv = require("dotenv");
 dotenv.config({ path: "./src/.env" });
@@ -20,13 +18,11 @@ const configurePassport = (app) => {
   passport.deserializeUser(async ({ id, role, provider }, done) => {
     try {
       let user;
-      if (provider === "facebook") {
-        user = await FacebookAuthServices.findUserById(
-          id,
-          role || "freelancer",
-        );
-      } else if (provider === "google") {
+      if (provider === "google") {
         user = await GoogleAuthServices.findUserById(id, role);
+      } else {
+        // Xử lý các provider khác nếu có, hoặc trả về lỗi nếu không tìm thấy
+        return done(new Error("Unknown provider"), null);
       }
       done(null, user);
     } catch (error) {
@@ -34,48 +30,6 @@ const configurePassport = (app) => {
       done(error, null);
     }
   });
-
-  // Facebook Strategy
-  passport.use(
-    new FacebookStrategy(
-      {
-        clientID: process.env.FACEBOOK_APP_ID,
-        clientSecret: process.env.FACEBOOK_APP_SECRET,
-        callbackURL: "/auth/facebook/callback",
-        passReqToCallback: true,
-      },
-      async (req, accessToken, refreshToken, profile, done) => {
-        try {
-          console.log("Facebook OAuth callback received:", {
-            profileId: profile.id,
-            email: profile._json.email,
-            state: req.query.state,
-          });
-
-          // Get role from state parameter
-          const role = req.query.state || "freelancer";
-
-          if (!["employer", "freelancer"].includes(role)) {
-            throw new Error("Invalid role specified in state parameter");
-          }
-
-          // Find or create user
-          const user = await FacebookAuthServices.findOrCreateUser(
-            profile,
-            role,
-          );
-
-          // Thêm role vào user object
-          user.role = role;
-
-          return done(null, user);
-        } catch (error) {
-          console.error("Facebook OAuth error:", error);
-          return done(error, false);
-        }
-      },
-    ),
-  );
 
   // Google Strategy
   passport.use(

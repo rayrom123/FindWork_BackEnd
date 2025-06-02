@@ -19,12 +19,6 @@ router.put(
   FreelancerController.updateProfile,
 );
 
-// Facebook authentication routes
-router.get("/facebook", FreelancerController.facebookLogin);
-router.get("/facebook/callback", FreelancerController.facebookCallback);
-router.get("/status", FreelancerController.checkAuthStatus);
-router.get("/logout", FreelancerController.logout);
-
 router.post(
   "/recommend/jobs-for-freelancer",
   auth, // Yêu cầu xác thực

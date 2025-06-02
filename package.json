@@ -16,10 +16,12 @@
   "dependencies": {
     "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",
+    "@google/generative-ai": "^0.24.1",
     "@octokit/rest": "^22.0.0",
     "axios": "^1.9.0",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
+    "connect-mongo": "^5.1.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^4.21.2",

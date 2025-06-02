@@ -5,8 +5,7 @@ const mongoose = require("mongoose");
 const { getIO } = require("../config/socket");
 const multer = require("multer");
 const path = require("path");
-const axios = require("axios");
-const { getGeminiResponse } = require("../config/openai");
+const { getChatGptResponse } = require("../config/openai");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
