@@ -179,52 +179,79 @@ const login = async (req, res) => {
 
 // Update freelancer profile
 const updateProfile = async (req, res) => {
-  try {
-    const freelancerId = req.user._id;
-    const updateData = req.body;
-
-    // Kiểm tra xem freelancer có tồn tại không
-    const freelancer = await Freelancer.findById(freelancerId);
-    if (!freelancer) {
-      return res.status(404).json({
+  upload(req, res, async function (err) {
+    if (err) {
+      return res.status(400).json({
         status: "Error",
-        message: "Freelancer not found",
+        message: err.message,
       });
     }
 
-    // Cập nhật thông tin
-    const updatedFreelancer = await Freelancer.findByIdAndUpdate(
-      freelancerId,
-      {
-        $set: {
-          fname: updateData.name,
-          phone: updateData.phone,
-          location: updateData.location,
-          skills: updateData.skills,
-          experience: updateData.experience,
-          education: updateData.education,
-          bio: updateData.bio,
+    try {
+      const freelancerId = req.user._id;
+      const updateData = req.body;
+
+      // Kiểm tra xem freelancer có tồn tại không
+      const freelancer = await Freelancer.findById(freelancerId);
+      if (!freelancer) {
+        return res.status(404).json({
+          status: "Error",
+          message: "Freelancer not found",
+        });
+      }
+
+      // Xử lý avatar nếu có upload file mới
+      if (req.file) {
+        // Xóa avatar cũ nếu tồn tại
+        if (freelancer.avatar) {
+          const oldAvatarPath = path.join(
+            __dirname,
+            "..",
+            "..",
+            freelancer.avatar,
+          );
+          if (fs.existsSync(oldAvatarPath)) {
+            fs.unlinkSync(oldAvatarPath);
+          }
+        }
+        updateData.avatar = req.file.path.replace(/\\/g, "/");
+      }
+
+      // Cập nhật thông tin
+      const updatedFreelancer = await Freelancer.findByIdAndUpdate(
+        freelancerId,
+        {
+          $set: {
+            fname: updateData.name,
+            phone: updateData.phone,
+            location: updateData.location,
+            skills: updateData.skills,
+            experience: updateData.experience,
+            education: updateData.education,
+            bio: updateData.bio,
+            avatar: updateData.avatar,
+          },
         },
-      },
-      { new: true },
-    );
+        { new: true },
+      );
 
-    // Loại bỏ password trước khi gửi response
-    const { password, ...freelancerWithoutPassword } =
-      updatedFreelancer.toObject();
+      // Loại bỏ password trước khi gửi response
+      const { password, ...freelancerWithoutPassword } =
+        updatedFreelancer.toObject();
 
-    return res.status(200).json({
-      status: "Success",
-      message: "Profile updated successfully",
-      data: freelancerWithoutPassword,
-    });
-  } catch (error) {
-    console.error("Error updating profile:", error);
-    return res.status(400).json({
-      status: "Error",
-      message: error.message || "Failed to update profile",
-    });
-  }
+      return res.status(200).json({
+        status: "Success",
+        message: "Profile updated successfully",
+        data: freelancerWithoutPassword,
+      });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      return res.status(400).json({
+        status: "Error",
+        message: error.message || "Failed to update profile",
+      });
+    }
+  });
 };
 
 const recommendJobsForFreelancer = async (req, res) => {

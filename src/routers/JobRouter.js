@@ -77,6 +77,13 @@ router.post(
   JobController.createOrder,
 );
 
+// Kiểm tra trạng thái order
+router.get(
+  "/jobs/order/:orderId",
+  auth,
+  JobController.checkOrderStatus
+);
+
 // Xác nhận thanh toán
 router.post(
   "/jobs/:jobId/capture",
