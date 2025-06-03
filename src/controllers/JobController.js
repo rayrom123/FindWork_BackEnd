@@ -22,6 +22,7 @@ const createJob = async (req, res) => {
       experienceLevel,
       location,
       skills,
+      category
     } = req.body;
 
     // Log field values for debugging
@@ -34,6 +35,7 @@ const createJob = async (req, res) => {
       experienceLevel: experienceLevel,
       location: location,
       skills: skills,
+      category: category,
     });
 
     // Validate required fields
@@ -45,7 +47,8 @@ const createJob = async (req, res) => {
       !timeEstimation ||
       !experienceLevel ||
       !location ||
-      !skills
+      !skills ||
+      !category
     ) {
       return res.status(400).json({
         status: "Error",
@@ -59,6 +62,7 @@ const createJob = async (req, res) => {
           experienceLevel: !experienceLevel,
           location: !location,
           skills: !skills,
+          category: !category,
         },
       });
     }
@@ -89,6 +93,7 @@ const createJob = async (req, res) => {
       experienceLevel,
       location,
       skills,
+      category,
       employerId: req.user._id,
     };
 
@@ -123,6 +128,7 @@ const getJobs = async (req, res) => {
       experienceLevel,
       timeEstimation,
       skills,
+      category,
       sort = "newest",
     } = req.query;
 
@@ -136,6 +142,7 @@ const getJobs = async (req, res) => {
       experienceLevel,
       timeEstimation,
       skills: skills ? skills.split(",") : undefined,
+      category,
       sort,
     };
 
@@ -294,9 +301,13 @@ const getAppliedJobs = async (req, res) => {
 const createOrder = async (req, res) => {
   try {
     const { jobId } = req.params;
+    const { freelancerId } = req.body;
+    
     console.log(
       "[PayPal Create Order] Starting create order process for job:",
       jobId,
+      "and freelancer:",
+      freelancerId
     );
 
     // Check if job exists
@@ -309,7 +320,7 @@ const createOrder = async (req, res) => {
       });
     }
 
-    const order = await JobService.createOrder(jobId);
+    const order = await JobService.createOrder(jobId, freelancerId);
     console.log("[PayPal Create Order] Order created successfully:", order);
 
     return res.status(200).json({
@@ -328,23 +339,24 @@ const createOrder = async (req, res) => {
 const captureOrder = async (req, res) => {
   try {
     const { jobId } = req.params;
-    const { orderId } = req.body;
+    const { orderId, freelancerId } = req.body;
 
     console.log("[PayPal Capture] Starting capture process", {
       orderId,
       jobId,
+      freelancerId,
       body: req.body,
       params: req.params,
     });
 
-    // Validate orderId
-    if (!orderId) {
+    // Validate orderId and freelancerId
+    if (!orderId || !freelancerId) {
       console.log(
-        "[PayPal Capture] Error: Order ID is missing in request body",
+        "[PayPal Capture] Error: Order ID or Freelancer ID is missing in request body",
       );
       return res.status(400).json({
         status: "Error",
-        message: "Order ID is required in request body",
+        message: "Order ID and Freelancer ID are required in request body",
       });
     }
 
@@ -377,8 +389,8 @@ const captureOrder = async (req, res) => {
         "[PayPal Capture] Payment completed successfully, updating job and application status",
       );
 
-      // Update application status and payment
-      const application = await Application.findOne({ jobId });
+      // Update application status and payment - Find the specific application for this freelancer
+      const application = await Application.findOne({ jobId, freelancerId });
       if (application) {
         application.status = "accepted";
         application.pay = true;
@@ -390,14 +402,14 @@ const captureOrder = async (req, res) => {
         });
 
         // Add freelancer to job's appliedFreelancers if not already present
-        if (!job.appliedFreelancers.includes(application.freelancerId)) {
-          job.appliedFreelancers.push(application.freelancerId);
+        if (!job.appliedFreelancers.includes(freelancerId)) {
+          job.appliedFreelancers.push(freelancerId);
           await job.save();
           console.log(
             "[PayPal Capture] Added freelancer to job's appliedFreelancers:",
             {
               jobId: job._id,
-              freelancerId: application.freelancerId,
+              freelancerId: freelancerId,
             },
           );
         } else {
@@ -405,12 +417,12 @@ const captureOrder = async (req, res) => {
             "[PayPal Capture] Freelancer already in appliedFreelancers:",
             {
               jobId: job._id,
-              freelancerId: application.freelancerId,
+              freelancerId: freelancerId,
             },
           );
         }
       } else {
-        console.log("[PayPal Capture] No application found for job:", jobId);
+        console.log("[PayPal Capture] No application found for job and freelancer:", { jobId, freelancerId });
       }
 
       return res.status(200).json({
@@ -608,6 +620,44 @@ const acceptProposal = async (req, res) => {
   }
 };
 
+const checkOrderStatus = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    
+    if (!orderId) {
+      console.log("[PayPal Order Status] Error: Order ID is missing");
+      return res.status(400).json({
+        status: 'Error',
+        message: 'Order ID is required'
+      });
+    }
+
+    console.log("[PayPal Order Status] Checking status for order:", orderId);
+    const accessToken = await JobService.generateAccessToken();
+    const response = await axios.get(
+      `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    console.log("[PayPal Order Status] Order status:", response.data.status);
+    return res.status(200).json({
+      status: 'Success',
+      data: response.data
+    });
+  } catch (error) {
+    console.error('[PayPal Order Status] Error:', error);
+    return res.status(500).json({
+      status: 'Error',
+      message: error.message || 'Failed to check order status'
+    });
+  }
+};
+
 module.exports = {
   createJob,
   getJobs,
@@ -622,4 +672,5 @@ module.exports = {
   acceptProposal,
   createOrder,
   captureOrder,
+  checkOrderStatus,
 };
