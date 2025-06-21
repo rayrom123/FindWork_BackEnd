@@ -33,6 +33,7 @@ class JobService {
         experienceLevel,
         timeEstimation,
         skills,
+        category,
         sort = "newest",
       } = filters;
 
@@ -60,6 +61,10 @@ class JobService {
 
       if (timeEstimation) {
         matchStage.timeEstimation = timeEstimation;
+      }
+
+      if (category) {
+        matchStage.category = category;
       }
 
       // Filter by salary range
@@ -127,6 +132,7 @@ class JobService {
               experienceLevel: 1,
               timeEstimation: 1,
               skills: 1,
+              category: 1,
               status: 1,
               pay: 1,
               createdAt: 1,
@@ -293,9 +299,10 @@ class JobService {
   }
 
   static async createOrder(jobId) {
-    // Tìm application đã accepted
     const application = await Application.findOne({
       jobId,
+      freelancerId,
+      status: "pending"
     });
     if (!application)
       throw new Error("Không tìm thấy đơn ứng tuyển đã được chấp nhận");
@@ -313,8 +320,8 @@ class JobService {
           },
         ],
         application_context: {
-          return_url: `http://localhost:5173/payment/return?jobId=${jobId}`,
-          cancel_url: "http://localhost:5173/employer/dashboard",
+          return_url: `https://web-fe-deploy.vercel.app/payment/return?jobId=${jobId}`,
+          cancel_url: "https://web-fe-deploy.vercel.app/employer/dashboard",
         },
       },
       {

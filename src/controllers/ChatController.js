@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 const { getIO } = require("../config/socket");
 const multer = require("multer");
 const path = require("path");
-const { getChatGptResponse } = require("../config/openai");
+const { getGeminiResponse } = require("../config/openai");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -129,27 +129,46 @@ const sendMessage = async (req, res) => {
 const getMessages = async (req, res) => {
   try {
     const { id: receiverID } = req.params;
-    const senderID = req.user._id; // Lấy từ xác thực
+    const senderID = req.user._id;
+    
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
+    // Lấy tin nhắn với phân trang
     const messages = await Message.find({
       $or: [
         { senderID, receiverID },
         { senderID: receiverID, receiverID: senderID },
       ],
-    }).sort({ createdAt: 1 });
+    })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit + 1); // Lấy thêm 1 tin nhắn để kiểm tra hasMore
 
-    res.status(200).json(messages);
+    // Kiểm tra hasMore bằng cách so sánh số lượng tin nhắn nhận được
+    const hasMore = messages.length > limit;
+    
+    // Nếu có thêm tin nhắn, bỏ tin nhắn thừa đi
+    const messagesToSend = hasMore ? messages.slice(0, -1) : messages;
+
+    res.status(200).json({
+      messages: messagesToSend.reverse(),
+      hasMore
+    });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: error.message });
   }
 };
 
+
+
 const getChatBotResponse = async (req, res) => {
   try {
     const prompt = req.query.question;
     console.log("Tin nhắn gửi cho chatbot:", prompt);
-    const response = await getChatGptResponse(prompt);
+    const response = await getGeminiResponse(prompt);
 
     console.log("Phản hồi từ chatbot:", response);
     res.json({ answer: response }); // Sửa key thành answer
@@ -158,6 +177,9 @@ const getChatBotResponse = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+
 
 module.exports = {
   getAllChattedUsers,
